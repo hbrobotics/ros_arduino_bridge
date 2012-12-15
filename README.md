@@ -324,7 +324,7 @@ If you do not have the hardware required to run the base controller,
 follow the instructions below so that you can still use your
 Arduino-compatible controller to read sensors and control PWM servos.
 
-First, you need to edit the MegaRobogaiaPololu sketch. mAt the top of
+First, you need to edit the MegaRobogaiaPololu sketch. At the top of
 the file, change the two lines that look like this:
 
 <pre>
@@ -349,5 +349,5 @@ so it looks like this:
 
 Compile the changes and upload to your controller.
 
-Next, edit your arduino_params.yaml file and set the
+Next, edit your my\_arduino_params.yaml file and set the
 use\_base\_controller parameter to False.  That's all there is to it.
