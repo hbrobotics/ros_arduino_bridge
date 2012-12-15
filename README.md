@@ -173,12 +173,12 @@ The MegaRobogaiaPololu Arudino sketch connects at 57600 baud by default.
 
 _Polling Rates_
 
-The main rate parameter (50 Hz by default) determines how fast the
+The main *rate* parameter (50 Hz by default) determines how fast the
 outside ROS loop runs.  The default should suffice in most cases.  In
 any event, it should be at least as fast as your fastest sensor rate
 (defined below).
 
-The sensorstate_rate determines how often to publish an aggregated
+The *sensorstate\_rate* determines how often to publish an aggregated
 list of all sensor readings.  Each sensor also publishes on its own
 topic and rate.
 
@@ -191,12 +191,12 @@ sensor parameters. (You can name each sensor whatever you like but
 remember that the name for a sensor will also become the topic name
 for that sensor.)
 
-The four most important parameters are pin, type, rate and direction.
-The rate defines how many times per second you want to poll that
+The four most important parameters are *pin*, *type*, *rate* and *direction*.
+The *rate* defines how many times per second you want to poll that
 sensor.  For example, a voltage sensor might only be polled once a
 second (or even once every 2 seconds: rate=0.5), whereas a sonar
-sensor might be polled at 20 times per second.  The type must be one
-of those listed (case sensitive!).  The default direction is input so
+sensor might be polled at 20 times per second.  The *type* must be one
+of those listed (case sensitive!).  The default *direction* is input so
 to define an output pin, set the direction explicitly to output.  In
 the example above, the Arduino LED (pin 13) will be blinked on and off
 at a rate of 2 times per second.
