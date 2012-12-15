@@ -1,5 +1,5 @@
 /* Define the attachment of any servos here.
-   The example shows one servo attached on pin 11.
+   The example shows two servos attached on pins 3 and 6.
 */
 
 #define N_SERVOS 2

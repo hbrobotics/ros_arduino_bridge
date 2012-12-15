@@ -1,5 +1,8 @@
-/* Functions and type-defs for PID control.  Take mostly from Mike Ferguson's
-   ArbotiX code.
+/* Functions and type-defs for PID control.
+
+   Taken mostly from Mike Ferguson's ArbotiX code which lives at:
+   
+   http://vanadium-ros-pkg.googlecode.com/svn/trunk/arbotix/
 */
 
 /* PID setpoint info For a Motor */

@@ -182,7 +182,7 @@ The *sensorstate\_rate* determines how often to publish an aggregated
 list of all sensor readings.  Each sensor also publishes on its own
 topic and rate.
 
-The base\_controller\_rate determines how often to publish odometry readings.
+The *base\_controller\_rate* determines how often to publish odometry readings.
 
 _Defining Sensors_
 
@@ -198,7 +198,7 @@ second (or even once every 2 seconds: rate=0.5), whereas a sonar
 sensor might be polled at 20 times per second.  The *type* must be one
 of those listed (case sensitive!).  The default *direction* is input so
 to define an output pin, set the direction explicitly to output.  In
-the example above, the Arduino LED (pin 13) will be blinked on and off
+the example above, the Arduino LED (pin 13) will be turned on and off
 at a rate of 2 times per second.
 
 _Setting Drivetrain and PID Parameters_
