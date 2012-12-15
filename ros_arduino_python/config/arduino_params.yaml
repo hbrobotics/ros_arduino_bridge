@@ -1,0 +1,38 @@
+port: /dev/ttyACM0
+baud: 57600
+timeout: 0.1
+
+rate: 50
+sensorstate_rate: 10
+
+use_base_controller: True
+base_controller_rate: 10
+
+# === Robot drivetrain parameters
+#wheel_diameter: 0.146
+#wheel_track: 0.2969
+#encoder_resolution: 8384 # from Pololu for 131:1 motors
+#gear_reduction: 1.0
+#motors_reversed: True
+
+# === PID parameters
+#Kp: 20
+#Kd: 12
+#Ki: 0
+#Ko: 50
+
+# === Sensor definitions.  Examples only - edit for your robot.
+#     Sensor type can be one of the follow (case sensitive!):
+#	  * Ping
+#	  * GP2D12
+#	  * Analog
+#	  * Digital
+#	  * PololuMotorCurrent
+
+sensors: {
+  motor_current_left:   {pin: 0, type: PololuMotorCurrent, rate: 5},
+  motor_current_right:  {pin: 1, type: PololuMotorCurrent, rate: 5},
+  ir_front_center:      {pin: 2, type: GP2D12, rate: 10},
+  sonar_front_center:   {pin: 5, type: Ping, rate: 10},
+  arduino_led:          {pin: 13, type: Digital, rate: 2, direction: output}
+}

@@ -1,0 +1,14 @@
+<package>
+  <description brief="ros_arduino_firmware">
+
+     ros_arduino_firmware
+
+  </description>
+  <author>Patrick Goebel</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/ros_arduino_firmware</url>
+
+</package>
+
+
