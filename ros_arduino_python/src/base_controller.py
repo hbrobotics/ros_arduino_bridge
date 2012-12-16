@@ -2,6 +2,7 @@
 
 """
     A base controller class for the Arduino microcontroller
+    
     Borrowed heavily from Mike Feguson's ArbotiX base_controller.py code.
     
     Created for the Pi Robot Project: http://www.pirobot.org

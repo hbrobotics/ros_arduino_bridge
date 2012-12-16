@@ -66,16 +66,11 @@ class Sensor(object):
                 except:
                     return          
     
-            # The Arduino returns ranges in cm so convert to meters
+            # For range sensors, assign the value to the range message field
             if self.message_type == MessageType.RANGE:
-                try:
-                    self.value /= 100.0
-                    self.msg.range = self.value
-                except:
-                    return
+                self.msg.range = self.value
             else:
                 self.msg.value = self.value
-                
 
             # At a timestamp and publish the message
             self.msg.header.stamp = rospy.Time.now()
@@ -170,15 +165,19 @@ class IRSensor(RangeSensor):
 class Ping(SonarSensor):
     def __init__(self,*args, **kwargs):
         super(Ping, self).__init__(*args, **kwargs)
-        
-        #self.controller.pin_mode(self.pin, INPUT)
-        
+                
         self.msg.field_of_view = 0.785398163
         self.msg.min_range = 0.02
         self.msg.max_range = 3.0
         
     def read_value(self):
-        return self.controller.ping(self.pin)
+        # The Arduino Ping code returns the distance in centimeters
+        cm = self.controller.ping(self.pin)
+        
+        # Convert it to meters for ROS
+        distance = cm / 100.0
+        
+        return distance
     
         
 class GP2D12(IRSensor):
@@ -191,12 +190,21 @@ class GP2D12(IRSensor):
         
     def read_value(self):
         value = self.controller.analog_read(self.pin)
+        
+        if value <= 3.0:
+            return self.msg.max_range
+        
         try:
-            distance = (6787 / (value - 3)) - 4
+            distance = (6787.0 / (float(value) - 3.0)) - 4.0
         except:
-            distance = 80
-        if distance > 80: distance = 80
-        if distance < 10: distance = 10
+            return self.msg.max_range
+            
+        # Convert to meters
+        distance /= 100.0
+        
+        # If we get a spurious reading, set it to the max_range
+        if distance > self.msg.max_range: distance = self.msg.max_range
+        if distance < self.msg.min_range: distance = self.msg.max_range
         
         return distance
     
