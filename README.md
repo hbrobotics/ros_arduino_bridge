@@ -162,7 +162,7 @@ sensors: {
 }
 </pre>
 
-**NOTE**: Do not use tabs in your .yaml file or the parser will barf it back out when it tries to load it.   Always use spaces instead.  **ALSO**: When defining your sensor parameters, the last sensor in the list does not get a comma (,) at the end of the line but all the rest must have a comma.
+**NOTE**: Do not use tabs in your .yaml file or the parser will barf it back out when it tries to load it.   Always use spaces instead.  **ALSO**: When defining your sensor parameters, the last sensor in the list does **not** get a comma (,) at the end of the line but all the rest **must** have a comma.
 
 Let's now look at each section of this file.
 
