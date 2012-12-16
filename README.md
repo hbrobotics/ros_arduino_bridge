@@ -162,6 +162,8 @@ sensors: {
 }
 </pre>
 
+**NOTE**: Do not use tabs in your .yaml file or the parser will barf it back out when it tries to load it.   Always use spaces instead.
+
 Let's now look at each section of this file.
 
  _Port Settings_
