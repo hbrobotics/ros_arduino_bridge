@@ -142,7 +142,7 @@
 int mode = 0;
 int index = 0;
 
-// Variable hold an input character
+// Variable to hold an input character
 char chr;
 
 // Variable to hold the current single-character command
@@ -314,7 +314,7 @@ void loop() {
     }
   }
   
-// If we using base control, run a PID calculation at the appropriate intervals
+// If we are using base control, run a PID calculation at the appropriate intervals
 #ifdef USE_BASE
   if (millis() > nextPID) {
     updatePID();
