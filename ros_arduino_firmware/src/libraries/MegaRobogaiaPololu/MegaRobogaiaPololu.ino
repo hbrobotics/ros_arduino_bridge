@@ -64,6 +64,7 @@
 /* Sensor functions */
 #include "sensors.h"
 
+/* Include servo support if required */
 #ifdef USE_SERVOS
    #include <Servo.h>
    #include "servos.h"
@@ -87,7 +88,11 @@
 
   /* Run the PID loop at 30 times per second */
   #define PID_RATE           30     // Hz
+
+  /* Convert the rate into an interval */
   const int PID_INTERVAL = 1000 / PID_RATE;
+  
+  /* Track the next time we make a PID calculation */
   unsigned long nextPID = PID_INTERVAL;
 
   /* Stop the robot if it hasn't received a movement command
@@ -95,24 +100,30 @@
   #define AUTO_STOP_INTERVAL 2000
   long lastMotorCommand = AUTO_STOP_INTERVAL;
 
-  // Wrap the encoder reading function
+  /* Wrap the encoder reading function */
   long readEncoder(int i) {
     if (i == LEFT) return encoders.YAxisGetCount();
     else return encoders.XAxisGetCount();
   }
 
-  // Wrap the encoder reset function
+  /* Wrap the encoder reset function */
   void resetEncoder(int i) {
     if (i == LEFT) return encoders.YAxisReset();
     else return encoders.XAxisReset();
   }
 
+  /* Wrap the encoder reset function */
   void resetEncoders() {
     resetEncoder(LEFT);
     resetEncoder(RIGHT);
   }
+  
+  /* Wrap the motor driver initialization */
+  void initMotorController() {
+    drive.init();
+  }
 
-  // Wrap the drive motor set speed function
+  /* Wrap the drive motor set speed function */
   void setMotorSpeed(int i, int spd) {
     if (i == LEFT) drive.setM1Speed(spd);
     else drive.setM2Speed(spd);
@@ -125,16 +136,27 @@
   }
 #endif
 
+/* Variable initialization */
+
+// A pair of varibles to help parse serial commands (thanks Fergs)
 int mode = 0;
 int index = 0;
+
+// Variable hold an input character
 char chr;
+
+// Variable to hold the current single-character command
 char cmd;
+
+// Character arrays to hold the first and second arguments
 char argv1[16];
 char argv2[16];
+
+// The arguments converted to integers
 long arg1;
 long arg2;
 
-// Clear the current command parameters
+/* Clear the current command parameters */
 void resetCommand() {
   cmd = NULL;
   memset(argv1, 0, sizeof(argv1));
@@ -145,7 +167,7 @@ void resetCommand() {
   index = 0;
 }
 
-// Run a command
+/* Run a command.  Commands are defined in commands.h */
 int runCommand() {
   int i = 0;
   char *p = argv1;
@@ -233,13 +255,16 @@ int runCommand() {
   }
 }
 
+/* Setup function--runs once at startup. */
 void setup() {
   Serial.begin(BAUDRATE);
 
+// Initialize the motor controller if used */
 #ifdef USE_BASE
-  drive.init();
+  initMotorController();
 #endif
 
+/* Attach servos if used */
 #ifdef USE_SERVOS
   int i;
   for (i = 0; i < N_SERVOS; i++) {
@@ -248,6 +273,10 @@ void setup() {
 #endif
 }
 
+/* Enter the main loop.  Read and parse input from the serial port
+   and run any valid commands.  Run a PID calculation at the target
+   intervals and check for auto-stop conditions.
+*/
 void loop() {
   while (Serial.available() > 0) {
     
@@ -285,13 +314,14 @@ void loop() {
     }
   }
   
-// If we using base control, run a PID loop at the appropriate intervals
+// If we using base control, run a PID calculation at the appropriate intervals
 #ifdef USE_BASE
   if (millis() > nextPID) {
     updatePID();
     nextPID += PID_INTERVAL;
   }
   
+  // Check to see if we have exceeded the auto-stop interval
   if ((millis() - lastMotorCommand) > AUTO_STOP_INTERVAL) {;
     setMotorSpeeds(0, 0);
     moving = 0;
