@@ -10,6 +10,8 @@
 
     Created for the Pi Robot Project: http://www.pirobot.org
 
+    Inspired and modeled after the ArbotiX driver by Michael Ferguson
+    
     Software License Agreement (BSD License)
 
     Copyright (c) 2012, Patrick Goebel.
@@ -81,7 +83,7 @@
   DualVNH5019MotorShield drive;
 
   /* Create the encoder shield object */
-  MegaEncoderCounter encoders(4); // Initializes the Mega Encoder Counter in the 4X Count Mode
+  MegaEncoderCounter encoders(4); // Initializes the Mega Encoder Counter in the 4X Count arg
 
   /* PID parameters and functions */
   #include "diff_controller.h"
@@ -139,7 +141,7 @@
 /* Variable initialization */
 
 // A pair of varibles to help parse serial commands (thanks Fergs)
-int mode = 0;
+int arg = 0;
 int index = 0;
 
 // Variable to hold an input character
@@ -163,7 +165,7 @@ void resetCommand() {
   memset(argv2, 0, sizeof(argv2));
   arg1 = 0;
   arg2 = 0;
-  mode = 0;
+  arg = 0;
   index = 0;
 }
 
@@ -274,40 +276,44 @@ void setup() {
 }
 
 /* Enter the main loop.  Read and parse input from the serial port
-   and run any valid commands.  Run a PID calculation at the target
-   intervals and check for auto-stop conditions.
+   and run any valid commands. Run a PID calculation at the target
+   interval and check for auto-stop conditions.
 */
 void loop() {
   while (Serial.available() > 0) {
     
+    // Read the next character
     chr = Serial.read();
 
     // Terminate a command with a CR
     if (chr == 13) {
-      if (mode == 1) argv1[index] = NULL;
-      else if (mode == 2) argv2[index] = NULL;
+      if (arg == 1) argv1[index] = NULL;
+      else if (arg == 2) argv2[index] = NULL;
       runCommand();
       resetCommand();
     }
     // Use spaces to delimit parts of the command
     else if (chr == ' ') {
-      if (mode == 0) mode = 1;
-      else if (mode == 1)  {
+      // Step through the arguments
+      if (arg == 0) arg = 1;
+      else if (arg == 1)  {
         argv1[index] = NULL;
-        mode = 2;
+        arg = 2;
         index = 0;
       }
       continue;
     }
     else {
-      if (mode == 0) {
+      if (arg == 0) {
+        // The first arg is the single-letter command
         cmd = chr;
       }
-      else if (mode == 1) {
+      else if (arg == 1) {
+        // Subsequent arguments can be more than one character
         argv1[index] = chr;
         index++;
       }
-      else if (mode == 2) {
+      else if (arg == 2) {
         argv2[index] = chr;
         index++;
       }
