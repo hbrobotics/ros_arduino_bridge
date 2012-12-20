@@ -83,7 +83,7 @@
   DualVNH5019MotorShield drive;
 
   /* Create the encoder shield object */
-  MegaEncoderCounter encoders(4); // Initializes the Mega Encoder Counter in the 4X Count arg
+  MegaEncoderCounter encoders(4); // Initializes the Mega Encoder Counter in the 4X Count mode
 
   /* PID parameters and functions */
   #include "diff_controller.h"
