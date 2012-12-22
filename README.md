@@ -122,14 +122,14 @@ Bring up your copy of the params file (my\_arduino\_params.yaml) in
 your favorite text editor.  It should start off looking like this:
 
 <pre>
-port: /dev/ttyACM0
+port: /dev/ttyUSB0
 baud: 57600
 timeout: 0.1
 
 rate: 50
 sensorstate_rate: 10
 
-use_base_controller: True
+use_base_controller: False
 base_controller_rate: 10
 
 # === Robot drivetrain parameters
@@ -139,26 +139,26 @@ base_controller_rate: 10
 #gear_reduction: 1.0
 #motors_reversed: True
 
-# ===  PID parameters
+# === PID parameters
 #Kp: 20
 #Kd: 12
 #Ki: 0
 #Ko: 50
 
-#  === Sensor definitions.  Examples only - edit for your robot.
-#      Sensor type can be one of the follow (case sensitive!):
-#	    Ping
-#	    GP2D12
-#	    Analog
-#	    Digital
-#	    PololuMotorCurrent
+# === Sensor definitions.  Examples only - edit for your robot.
+#     Sensor type can be one of the follow (case sensitive!):
+#	  * Ping
+#	  * GP2D12
+#	  * Analog
+#	  * Digital
+#	  * PololuMotorCurrent
 
 sensors: {
-  motor_current_left:   {pin: 0, type: PololuMotorCurrent, rate: 5},
-  motor_current_right:  {pin: 1, type: PololuMotorCurrent, rate: 5},
-  ir_front_center:      {pin: 2, type: GP2D12, rate: 10},
-  sonar_front_center:   {pin: 5, type: Ping, rate: 10},
-  arduino_led:          {pin: 13, type: Digital, rate: 2, direction: output}
+  #motor_current_left:   {pin: 0, type: PololuMotorCurrent, rate: 5},
+  #motor_current_right:  {pin: 1, type: PololuMotorCurrent, rate: 5},
+  #ir_front_center:      {pin: 2, type: GP2D12, rate: 10},
+  #sonar_front_center:   {pin: 5, type: Ping, rate: 10},
+  arduino_led:          {pin: 13, type: Digital, rate: 5, direction: output}
 }
 </pre>
 
@@ -168,8 +168,7 @@ Let's now look at each section of this file.
 
  _Port Settings_
 
-The port will likely be either /dev/ttyACM0 or /dev/ttyUSB0 (e.g. for
-an Xbee connection).  Set accordingly.
+The port will likely be either /dev/ttyACM0 or /dev/ttyUSB0. Set accordingly.
 
 The MegaRobogaiaPololu Arudino sketch connects at 57600 baud by default.
 
@@ -183,6 +182,8 @@ any event, it should be at least as fast as your fastest sensor rate
 The *sensorstate\_rate* determines how often to publish an aggregated
 list of all sensor readings.  Each sensor also publishes on its own
 topic and rate.
+
+The *use\_base\_controller* parameter is set to False by default.  Set it to True to use base control (assuming you have the required hardware.)  You will also have to set the PID paramters that follow.
 
 The *base\_controller\_rate* determines how often to publish odometry readings.
 
@@ -234,10 +235,10 @@ You should see something like the following output:
 
 <pre>
 process[arduino-1]: started with pid [6098]
-Connecting to Arduino on port /dev/ttyACM0 ...
+Connecting to Arduino on port /dev/ttyUSB0 ...
 Connected at 57600
 Arduino is ready.
-[INFO] [WallTime: 1355498525.954491] Connected to Arduino on port /dev/ttyACM0 at 57600 baud
+[INFO] [WallTime: 1355498525.954491] Connected to Arduino on port /dev/ttyUSB0 at 57600 baud
 [INFO] [WallTime: 1355498525.966825] motor_current_right {'rate': 5, 'type': 'PololuMotorCurrent', 'pin': 1}
 [INFO]
 etc
@@ -251,7 +252,7 @@ Viewing Sensor Data
 -------------------
 To see the aggregated sensor data, echo the sensor state topic:
 
-    $ rostopic echo /arduino/sensors
+    $ rostopic echo /arduino/sensor_state
 
 To see the data on any particular sensor, echo its topic name:
 
