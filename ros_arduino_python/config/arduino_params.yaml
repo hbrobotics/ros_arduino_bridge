@@ -1,11 +1,11 @@
-port: /dev/ttyACM0
+port: /dev/ttyUSB0
 baud: 57600
 timeout: 0.1
 
 rate: 50
 sensorstate_rate: 10
 
-use_base_controller: True
+use_base_controller: False
 base_controller_rate: 10
 
 # === Robot drivetrain parameters
@@ -30,9 +30,9 @@ base_controller_rate: 10
 #	  * PololuMotorCurrent
 
 sensors: {
-  motor_current_left:   {pin: 0, type: PololuMotorCurrent, rate: 5},
-  motor_current_right:  {pin: 1, type: PololuMotorCurrent, rate: 5},
-  ir_front_center:      {pin: 2, type: GP2D12, rate: 10},
-  sonar_front_center:   {pin: 5, type: Ping, rate: 10},
-  arduino_led:          {pin: 13, type: Digital, rate: 2, direction: output}
+  #motor_current_left:   {pin: 0, type: PololuMotorCurrent, rate: 5},
+  #motor_current_right:  {pin: 1, type: PololuMotorCurrent, rate: 5},
+  #ir_front_center:      {pin: 2, type: GP2D12, rate: 10},
+  #sonar_front_center:   {pin: 5, type: Ping, rate: 10},
+  arduino_led:          {pin: 13, type: Digital, rate: 5, direction: output}
 }

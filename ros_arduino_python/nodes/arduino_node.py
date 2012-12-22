@@ -63,7 +63,7 @@ class ArduinoROS():
         
         # The SensorState publisher periodically publishes the values of all sensors on
         # a single topic.
-        self.sensorStatePub = rospy.Publisher('~sensors', SensorState)
+        self.sensorStatePub = rospy.Publisher('~sensor_state', SensorState)
         
         # A service to position a PWM servo
         rospy.Service('~servo_write', ServoWrite, self.ServoWriteHandler)
