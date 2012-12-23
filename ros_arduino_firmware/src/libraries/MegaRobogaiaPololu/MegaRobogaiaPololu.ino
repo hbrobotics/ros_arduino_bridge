@@ -208,8 +208,6 @@ int runCommand() {
 #ifdef USE_SERVOS
   case SERVO_WRITE:
     servos[arg1].write(arg2);
-    Serial.print(arg1);
-    Serial.print(arg2);
     Serial.println("OK");
     break;
   case SERVO_READ:
