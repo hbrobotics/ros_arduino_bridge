@@ -1,5 +1,5 @@
 <stack>
-  <description brief="ros_arduino_bridge">ros_arduino_bridge</description>
+  <description brief="ros_arduino_bridge">ROS Arduino Bridge</description>
   <author>Maintained by Patrick Goebel</author>
   <license>BSD</license>  
   <review status="unreviewed" notes=""/>

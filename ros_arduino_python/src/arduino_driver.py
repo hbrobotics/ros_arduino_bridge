@@ -22,14 +22,17 @@
 """
 
 import thread
-from math import pi as PI
+from math import pi as PI, degrees, radians
 import os
 import time
 import sys
 from serial.serialutil import SerialException
 from serial import Serial
 
-class Arduino:  
+SERVO_MAX = 180
+SERVO_MIN = 0
+
+class Arduino:
     ''' Configuration Parameters
     '''    
     N_ANALOG_PORTS = 6
@@ -309,13 +312,15 @@ class Arduino:
 
     def servo_write(self, id, pos):
         ''' Usage: servo_write(id, pos)
+            Position is given in radians and converted to degrees before sending
         '''        
-        return self.execute_ack('s %d %d' %(id, pos))
+        return self.execute_ack('s %d %d' %(id, min(SERVO_MAX, max(SERVO_MIN, degrees(pos)))))
     
     def servo_read(self, id):
         ''' Usage: servo_read(id)
+            The returned position is converted from degrees to radians
         '''        
-        return self.execute('t %d' %id)
+        return radians(self.execute('t %d' %id))
 
     def ping(self, pin):
         ''' The srf05/Ping command queries an SRF05/Ping sonar sensor

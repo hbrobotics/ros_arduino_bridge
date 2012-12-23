@@ -72,7 +72,7 @@ class Sensor(object):
             else:
                 self.msg.value = self.value
 
-            # At a timestamp and publish the message
+            # Add a timestamp and publish the message
             self.msg.header.stamp = rospy.Time.now()
             self.pub.publish(self.msg)
             
