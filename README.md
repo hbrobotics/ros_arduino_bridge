@@ -60,13 +60,9 @@ To install the MegaRobogaiaPololu sketch, follow these steps:
 
 where SKETCHBOOK_PATH is the path to your Arduino sketchbook directory.
 
-    $ ln -s `rospack find ros_arduino_firmware`/src/libraries/MegaRobogaiaPololu MegaRobogaiaPololu
+    $ cp -rp `rospack find ros_arduino_firmware`/src/libraries/MegaRobogaiaPololu MegaRobogaiaPololu
 
-This last command creates a link in your sketchbook folder for the
-MegaRobogaiaPololu sketch that you must run on your Arduino Mega
-controller.  By creating a link rather than copying the files, the
-sketch will get updated along with other files in the
-ros\_arduino\_bridge stack.
+This last command copies the MegaRobogaiaPololu sketch files into your sketchbook folder.  The next section describes how to configure, compile and upload this sketch.
 
 
 Loading the MegaRobogaiaPololu Sketch
@@ -103,6 +99,13 @@ You must then edit the include file servos.h and change the N_SERVOS
 parameter as well as the pin numbers for the servos you have attached.
 
 * Compile and upload the sketch to your Arduino.
+
+Testing your Wiring Connections
+-------------------------------
+On a differential drive robot, the motors are connected with opposite polarity to the motor controller terminals.  Similarly, the A/B leads from the encoders are connected in the reverse sense to each other.  However, you still need to make sure that (a) the wheels move forward when given a positive motor speed and (b) that the encoder counts increase when the wheels move forward.
+
+After placing your robot on blocks, you can use the Serial Monitor in the Arduino IDE to test both requirements.  Use the 'm' command to activate the motors, the 'e' command to get the encoder counts, and the 'r' command to reset the encoders to 0.  Remember that at the firmware level motor speeds are given in encoder ticks per second so that for an encoder resolution of, say 4000 counts per wheel revolution, a command such as 'm 20 20' should move the wheels fairly slowly.  Also remember that the first argument is the left motor speed and the second argument is the right motor speed.  Similarly, the using the 'e' command, the first number returned is the left encoder count and the second number is the right encoder count.
+
 
 Configuring the ros\_arduino\_python Node
 -----------------------------------------
