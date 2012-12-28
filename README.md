@@ -1,34 +1,44 @@
-This ROS stack includes an Arduino sketch and a collection of ROS
-packages for controlling an Arduino-based robot using standard ROS
-messages and services.
+This ROS stack includes an Arduino library (called ROSArduinoBridge) and a collection of ROS packages for controlling an Arduino-based robot using standard ROS messages and services.  The stack does **not** depend on ROS Serial.
 
-Supported sensors currently include Ping sonar and Sharp GP2D12
-infrared as well as generic analog and digital sensors (e.g bump
-switches, voltage sensors, etc.)
+Features of the stack include:
 
-The package also includes a base controller for a differential drive
-that accepts ROS Twist messages and publishes odometry data back to
-the PC. In this version of the stack, the base controller requires the
-use of an Arduino Mega 2560 controller together with a Pololu motor
-controller shield (http://www.pololu.com/catalog/product/2502) and a
-Robogaia Mega Encoder shield
+* Direct support for Ping sonar and Sharp infrared (GP2D12) sensors
+
+* Can also read data from generic analog and digital sensors
+
+* Can control digital outputs (e.g. turn a switch or LED on and off)
+
+* Support for PWM servos
+
+* Configurable base controller if using the required hardware
+
+The stack includes a base controller for a differential drive
+robot that accepts ROS Twist messages and publishes odometry data back to
+the PC. The base controller requires the use of a motor controller and encoders for reading odometry data.  The current version of the stack provides support for the following base controller hardware:
+
+* Pololu VNH5019 dual motor controller shield (http://www.pololu.com/catalog/product/2502) or Pololu MC33926 dual motor shield (http://www.pololu.com/catalog/product/2503).
+
+* Robogaia Mega Encoder shield
 (http://www.robogaia.com/two-axis-encoder-counter-mega-shield-version-2.html).
+
+**NOTE:** The Robogaia Mega Encoder shield can only be used with an Arduino Mega.
+
+* The library can be easily extended to include support for other motor controllers and encoder hardware or libraries.
+
 
 System Requirements
 -------------------
-The current version of the stack requires an Arudino Mega controller +
-Pololu Dual VNH5019 Motor Driver Shield + Robogaia Encoder shield.  If
-you do not have this hardware, you can still try the package for
-reading sensors and controlling servos using other Arduino-compatible
-controllers.  See the NOTES section at the end of this document for
-instructions on how to do this.
+The stack should work with any Arduino-compatible controller for reading sensors and controlling PWM servos.  However, to use the base controller, you will need a supported motor controller and encoder hardware as described above. If you do not have this hardware, you can still try the package for reading sensors and controlling servos.  See the NOTES section at the end of this document for instructions on how to do this.
 
-To use the base controller you must also install the Polulu Arduino
-library found at:
+To use the base controller you must also install the appropriate libraries for your motor controller and encoders.  For the Pololu VNH5019 Dual Motor Shield, the library can be found at:
 
 https://github.com/pololu/Dual-VNH5019-Motor-Shield
 
-and the Robogaia Encoder library found at:
+For the Pololu MC33926 Dual Motor Shield, the library can be found at:
+
+https://github.com/pololu/dual-mc33926-motor-shield
+
+The Robogaia Mega Encoder library can be found at:
 
 http://www.robogaia.com/uploads/6/8/0/9/6809982/__megaencodercounter-1.3.tar.gz
 
@@ -47,38 +57,40 @@ Installation
     $ cd ros_arduino_bridge
     $ rosmake
 
-The provided Arduino sketch is called MegaRobogaiaPololu and is
+The provided Arduino library is called ROSArduinoBridge and is
 located in the ros\_arduino\_firmware package.  This sketch is
 specific to the hardware requirements above but it can also be used
 with other Arduino-type boards (e.g. Uno) by turning off the base
 controller as described in the NOTES section at the end of this
 document.
 
-To install the MegaRobogaiaPololu sketch, follow these steps:
+To install the ROSArduinoBridge library, follow these steps:
 
     $ cd SKETCHBOOK_PATH
 
 where SKETCHBOOK_PATH is the path to your Arduino sketchbook directory.
 
-    $ cp -rp `rospack find ros_arduino_firmware`/src/libraries/MegaRobogaiaPololu MegaRobogaiaPololu
+    $ cp -rp `rospack find ros_arduino_firmware`/src/libraries/ROSArduinoBridge ROSArduinoBridge
 
-This last command copies the MegaRobogaiaPololu sketch files into your sketchbook folder.  The next section describes how to configure, compile and upload this sketch.
+This last command copies the ROSArduinoBridge sketch files into your sketchbook folder.  The next section describes how to configure, compile and upload this sketch.
 
 
-Loading the MegaRobogaiaPololu Sketch
--------------------------------------
+Loading the ROSArduinoBridge Sketch
+-----------------------------------
 
-* Make sure you have already installed the DualVNH5019MotorShield and
-  MegaEncoderCounter libraries into your Arduino sketchbook/libraries
-  folder.
+* If you are using the base controller, make sure you have already installed the appropriate motor controller and encoder libraries into your Arduino sketchbook/librariesfolder.
 
-* Launch the Arduino 1.0 IDE and load the MegaRobogaiaPololu sketch.
+* Launch the Arduino 1.0 IDE and load the ROSArduinoBridge sketch.
   You should be able to find it by going to:
 
-    File->Sketchbook->MegaRobogaiaPololu
+    File->Sketchbook->ROSArduinoBridge
   
-NOTE: If you don't have the Arduino Mega/Pololu/Robogaia hardware but
+NOTE: If you don't have the required base controller hardware but
 still want to try the code, see the notes at the end of the file.
+
+Choose one of the supported motor controllers by uncommenting its #define statement and commenting out any others.  By default, the Pololu VNH5019 driver is chosen.
+
+Choose a supported encoder library by by uncommenting its #define statement and commenting out any others.  At the moment, only the Robogaia Mega Encoder shield is supported and it is chosen by default.
 
 If you want to control PWM servos attached to your controller, change
 the two lines that look like this:
@@ -99,6 +111,43 @@ You must then edit the include file servos.h and change the N_SERVOS
 parameter as well as the pin numbers for the servos you have attached.
 
 * Compile and upload the sketch to your Arduino.
+
+Firmware Commands
+-----------------
+The ROSArduionLibrary accepts single-letter commands over the serial port for polling sensors, controlling servos, driving the robot, and reading encoders.  These commands can be sent to the Arduino over any serial interface, including the Serial Monitor in the Arduino IDE.
+
+The list of commands can be found in the file commands.h.  The current list includes:
+
+#define ANALOG_READ    'a'
+#define GET_BAUDRATE   'b'
+#define PIN_MODE       'c'
+#define DIGITAL_READ   'd'
+#define READ_ENCODERS  'e'
+#define MOTOR_SPEEDS   'm'
+#define PING           'p'
+#define RESET_ENCODERS 'r'
+#define SERVO_WRITE    's'
+#define SERVO_READ     't'
+#define UPDATE_PID     'u'
+#define DIGITAL_WRITE  'w'
+#define ANALOG_WRITE   'x'
+
+For example, to get the analog reading on pin 3, use the command:
+
+a 3
+
+To change the mode of digital pin 3 to OUTPUT, send the command:
+
+c 3 1
+
+To get the current encoder counts:
+
+e
+
+To move the robot forward at 20 encoder ticks per second:
+
+m 20 20
+
 
 Testing your Wiring Connections
 -------------------------------
@@ -332,7 +381,7 @@ If you do not have the hardware required to run the base controller,
 follow the instructions below so that you can still use your
 Arduino-compatible controller to read sensors and control PWM servos.
 
-First, you need to edit the MegaRobogaiaPololu sketch. At the top of
+First, you need to edit the ROSArduinoBridge sketch. At the top of
 the file, change the two lines that look like this:
 
 <pre>
@@ -347,7 +396,7 @@ to this:
 #undef USE_BASE
 </pre>
 
-You also need to comment out the line that looks like this:
+You also need to comment out the line that looks like this in the file encoder_driver.ino:
 
     #include "MegaEncoderCounter.h"
 
@@ -357,5 +406,5 @@ so it looks like this:
 
 Compile the changes and upload to your controller.
 
-Next, edit your my\_arduino_params.yaml file and set the
-use\_base\_controller parameter to False.  That's all there is to it.
+Next, edit your my\_arduino_params.yaml file and make sure the
+use\_base\_controller parameter is set to False.  That's all there is to it.
