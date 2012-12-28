@@ -9,6 +9,9 @@
     different motor controller or encoder method.
 
     Created for the Pi Robot Project: http://www.pirobot.org
+    and the Home Brew Robotics Club (HBRC): http://hbrobotics.org
+    
+    Authors: Patrick Goebel, James Nugen
 
     Inspired and modeled after the ArbotiX driver by Michael Ferguson
     
@@ -50,6 +53,9 @@
    /* The Pololu VNH5019 dual motor driver shield */
    #define POLOLU_VNH5019
 
+   /* The Pololu MC33926 dual motor driver shield */
+   //#define POLOLU_MC33926
+
    /* The RoboGaia encoder shield */
    #define ROBOGAIA
 #endif
@@ -82,28 +88,12 @@
 #endif
 
 #ifdef USE_BASE
-  #ifdef POLOLU_VNH5019
-    /* Include the Pololu library */
-    #include "DualVNH5019MotorShield.h"
-  #endif
-  
-  /* Include the motor driver functions */
+  /* Motor driver function definitions */
   #include "motor_driver.h"
-  
-  #ifdef ROBOGAIA
-    /* The Robogaia Mega Encoder shield */
-    #include "MegaEncoderCounter.h"
-  #endif
 
-  /* Include the encoder functions */
-  #include "encoders.h"
-  
-  /* Wrap the encoder reset function */
-  void resetEncoders() {
-    resetEncoder(LEFT);
-    resetEncoder(RIGHT);
-  }
-  
+  /* Encoder driver function definitions */
+  #include "encoder_driver.h"
+
   /* PID parameters and functions */
   #include "diff_controller.h"
 
