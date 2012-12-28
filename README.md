@@ -118,6 +118,7 @@ The ROSArduionLibrary accepts single-letter commands over the serial port for po
 
 The list of commands can be found in the file commands.h.  The current list includes:
 
+<pre>
 #define ANALOG_READ    'a'
 #define GET_BAUDRATE   'b'
 #define PIN_MODE       'c'
@@ -131,6 +132,7 @@ The list of commands can be found in the file commands.h.  The current list incl
 #define UPDATE_PID     'u'
 #define DIGITAL_WRITE  'w'
 #define ANALOG_WRITE   'x'
+</pre>
 
 For example, to get the analog reading on pin 3, use the command:
 
