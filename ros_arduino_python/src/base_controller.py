@@ -118,7 +118,7 @@ class BaseController:
         if now > self.t_next:
             # Read the encoders
             try:
-                right_enc, left_enc = self.arduino.get_encoder_counts()
+                left_enc, right_enc = self.arduino.get_encoder_counts()
             except:
                 self.bad_encoder_count += 1
                 rospy.logerr("Encoder exception count: " + str(self.bad_encoder_count))
@@ -180,7 +180,6 @@ class BaseController:
             odom.twist.twist.linear.y = 0
             odom.twist.twist.angular.z = vth
 
-    
             self.odomPub.publish(odom)
             
             if now > (self.last_cmd_vel + rospy.Duration(self.timeout)):
@@ -189,10 +188,8 @@ class BaseController:
             
             # Set motor speeds in encoder ticks per PID loop
             if not self.stopped:
-                if self.motors_reversed:
-                    self.arduino.drive(self.v_left, self.v_right)
-                else:
-                    self.arduino.drive(self.v_right, self.v_left)
+                self.arduino.drive(self.v_left, self.v_right)
+
             
     def stop(self):
         self.stopped = True
