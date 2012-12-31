@@ -209,6 +209,8 @@ base_controller_rate: 10
 #	  * Analog
 #	  * Digital
 #	  * PololuMotorCurrent
+#	  * PhidgetsVoltage
+#	  * PhidgetsCurrent (20 Amp, DC)
 
 sensors: {
   #motor_current_left:   {pin: 0, type: PololuMotorCurrent, rate: 5},
