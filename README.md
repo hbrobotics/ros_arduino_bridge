@@ -200,6 +200,7 @@ base_controller_rate: 10
 #Kd: 12
 #Ki: 0
 #Ko: 50
+#accel_limit: 1.0
 
 # === Sensor definitions.  Examples only - edit for your robot.
 #     Sensor type can be one of the follow (case sensitive!):
