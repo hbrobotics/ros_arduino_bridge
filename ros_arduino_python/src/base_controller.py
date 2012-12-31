@@ -47,16 +47,18 @@ class BaseController:
         pid_params['Ki'] = rospy.get_param("~Ki", 0)
         pid_params['Ko'] = rospy.get_param("~Ko", 50)
         
-        self.motors_reversed = rospy.get_param("~motors_reversed", False)
         self.accel_limit = rospy.get_param('~accel_limit', 0.1)
+        self.motors_reversed = rospy.get_param("~motors_reversed", False)
         
         # Set up PID parameters and check for missing values
         self.setup_pid(pid_params)
             
         # How many encoder ticks are there per meter?
         self.ticks_per_meter = self.encoder_resolution * self.gear_reduction  / (self.wheel_diameter * pi)
-        self.max_accel = self.accel_limit * self.ticks_per_meter / self.rate
         
+        # What is the maximum acceleration we will tolerate when changing wheel speeds?
+        self.max_accel = self.accel_limit * self.ticks_per_meter / self.rate
+                
         # Track how often we get a bad encoder count (if any)
         self.bad_encoder_count = 0
                         
@@ -183,13 +185,32 @@ class BaseController:
             self.odomPub.publish(odom)
             
             if now > (self.last_cmd_vel + rospy.Duration(self.timeout)):
-                self.v_left = 0
-                self.v_right = 0
+                self.v_des_left = 0
+                self.v_des_right = 0
+                
+            if self.v_left < self.v_des_left:
+                self.v_left += self.max_accel
+                if self.v_left > self.v_des_left:
+                    self.v_left = self.v_des_left
+            else:
+                self.v_left -= self.max_accel
+                if self.v_left < self.v_des_left:
+                    self.v_left = self.v_des_left
+            
+            if self.v_right < self.v_des_right:
+                self.v_right += self.max_accel
+                if self.v_right > self.v_des_right:
+                    self.v_right = self.v_des_right
+            else:
+                self.v_right -= self.max_accel
+                if self.v_right < self.v_des_right:
+                    self.v_right = self.v_des_right
             
             # Set motor speeds in encoder ticks per PID loop
             if not self.stopped:
                 self.arduino.drive(self.v_left, self.v_right)
-
+                
+            self.t_next = now + self.t_delta
             
     def stop(self):
         self.stopped = True
@@ -214,8 +235,8 @@ class BaseController:
             left = x - th * self.wheel_track  * self.gear_reduction / 2.0
             right = x + th * self.wheel_track  * self.gear_reduction / 2.0
             
-        self.v_left = int(left * self.ticks_per_meter / self.arduino.PID_RATE)
-        self.v_right = int(right * self.ticks_per_meter / self.arduino.PID_RATE)
+        self.v_des_left = int(left * self.ticks_per_meter / self.arduino.PID_RATE)
+        self.v_des_right = int(right * self.ticks_per_meter / self.arduino.PID_RATE)
         
 
         

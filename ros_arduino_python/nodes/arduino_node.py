@@ -94,6 +94,12 @@ class ArduinoROS():
         sensor_params = rospy.get_param("~sensors", dict({}))
         
         for name, params in sensor_params.iteritems():
+            # Set the direction to input if not specified
+            try:
+                params['direction']
+            except:
+                params['direction'] = 'input'
+                
             if params['type'] == "Ping":
                 sensor = Ping(self.controller, name, params['pin'], params['rate'])
             elif params['type'] == "GP2D12":
@@ -104,6 +110,10 @@ class ArduinoROS():
                 sensor = AnalogSensor(self.controller, name, params['pin'], params['rate'], direction=params['direction'])
             elif params['type'] == 'PololuMotorCurrent':
                 sensor = PololuMotorCurrent(self.controller, name, params['pin'], params['rate'])
+            elif params['type'] == 'PhidgetsVoltage':
+                sensor = PhidgetsVoltage(self.controller, name, params['pin'], params['rate'])
+            elif params['type'] == 'PhidgetsCurrent':
+                sensor = PhidgetsCurrent(self.controller, name, params['pin'], params['rate'])
                 
 #                if params['type'] == "MaxEZ1":
 #                    self.sensors[len(self.sensors)]['trigger_pin'] = params['trigger_pin']

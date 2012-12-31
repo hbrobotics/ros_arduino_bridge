@@ -217,6 +217,24 @@ class PololuMotorCurrent(AnalogFloatSensor):
         milliamps = self.controller.analog_read(self.pin) * 34
         return milliamps / 1000.0
     
+class PhidgetsVoltage(AnalogFloatSensor):
+    def __init__(self, *args, **kwargs):
+        super(PhidgetsVoltage, self).__init__(*args, **kwargs)
+        
+    def read_value(self):
+        # From the Phidgets documentation
+        voltage = 0.06 * (self.controller.analog_read(self.pin) - 500.)
+        return voltage
+    
+class PhidgetsCurrent(AnalogFloatSensor):
+    def __init__(self, *args, **kwargs):
+        super(PhidgetsCurrent, self).__init__(*args, **kwargs)
+        
+    def read_value(self):
+        # From the Phidgets documentation for the 20 amp DC sensor
+        current = 0.05 * (self.controller.analog_read(self.pin) - 500.)
+        return current
+    
 class MaxEZ1Sensor(SonarSensor):
     def __init__(self, *args, **kwargs):
         super(MaxEZ1Sensor, self).__init__(*args, **kwargs)
