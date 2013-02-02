@@ -21,10 +21,10 @@
 
 import roslib; roslib.load_manifest('ros_arduino_python')
 import rospy
-from arduino_driver import Arduino
-from arduino_sensors import *
+from ros_arduino_python.arduino_driver import Arduino
+from ros_arduino_python.arduino_sensors import *
 from ros_arduino_msgs.srv import *
-from base_controller import BaseController
+from ros_arduino_python.base_controller import BaseController
 from geometry_msgs.msg import Twist
 import os, time
 import thread
