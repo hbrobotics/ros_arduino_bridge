@@ -52,10 +52,10 @@ Arduino IDE.
 Installation
 ------------
 
-    $ cd ~/ros_workspace
+    $ cd ~/catkin_workspace/src
     $ git clone https://github.com/hbrobotics/ros_arduino_bridge.git
-    $ cd ros_arduino_bridge
-    $ rosmake
+    $ cd ~/catkin_workspace
+    $ catkin_make
 
 The provided Arduino library is called ROSArduinoBridge and is
 located in the ros\_arduino\_firmware package.  This sketch is
