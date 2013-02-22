@@ -25,6 +25,12 @@ the PC. The base controller requires the use of a motor controller and encoders 
 
 * The library can be easily extended to include support for other motor controllers and encoder hardware or libraries.
 
+Official ROS Documentation
+--------------------------
+A standard ROS-style version of this documentation can be found on the ROS wiki at:
+
+http://www.ros.org/wiki/ros_arduino_bridge
+
 
 System Requirements
 -------------------
@@ -114,7 +120,7 @@ parameter as well as the pin numbers for the servos you have attached.
 
 Firmware Commands
 -----------------
-The ROSArduionLibrary accepts single-letter commands over the serial port for polling sensors, controlling servos, driving the robot, and reading encoders.  These commands can be sent to the Arduino over any serial interface, including the Serial Monitor in the Arduino IDE.
+The ROSArduinoLibrary accepts single-letter commands over the serial port for polling sensors, controlling servos, driving the robot, and reading encoders.  These commands can be sent to the Arduino over any serial interface, including the Serial Monitor in the Arduino IDE.
 
 The list of commands can be found in the file commands.h.  The current list includes:
 
@@ -155,7 +161,7 @@ Testing your Wiring Connections
 -------------------------------
 On a differential drive robot, the motors are connected to the motor controller terminals with opposite polarities to each other.  Similarly, the A/B leads from the encoders are connected in the reverse sense to each other.  However, you still need to make sure that (a) the wheels move forward when given a positive motor speed and (b) that the encoder counts increase when the wheels move forward.
 
-After **placing your robot on blocks**, you can use the Serial Monitor in the Arduino IDE to test both requirements.  Use the 'm' command to activate the motors, the 'e' command to get the encoder counts, and the 'r' command to reset the encoders to 0.  Remember that at the firmware level, motor speeds are given in encoder ticks per second so that for an encoder resolution of, say 4000 counts per wheel revolution, a command such as 'm 20 20' should move the wheels fairly slowly.  (The wheels will only move for 2 seconds which is the default setting for the AUTO_STOP_INTERVAL.)  Also remember that the first argument is the left motor speed and the second argument is the right motor speed.  Similarly, when using the 'e' command, the first number returned is the left encoder count and the second number is the right encoder count.
+After **placing your robot on blocks**, you can use the Serial Monitor in the Arduino IDE to test both requirements.  Use the 'm' command to activate the motors, the 'e' command to get the encoder counts, and the 'r' command to reset the encoders to 0.  Remember that at the firmware level, motor speeds are given in encoder ticks per second so that for an encoder resolution of, say 4000 counts per wheel revolution, a command such as 'm 20 20' should move the wheels fairly slowly.  (The wheels will only move for 2 seconds which is the default setting for the AUTO\_STOP\_INTERVAL.)  Also remember that the first argument is the left motor speed and the second argument is the right motor speed.  Similarly, when using the 'e' command, the first number returned is the left encoder count and the second number is the right encoder count.
 
 Finally, you can use the 'r' and 'e' commands to verify the expected encoder counts by rotating the wheels by hand roughly one full turn and checking the reported counts.
 
@@ -172,7 +178,7 @@ into that directory:
 
 Now copy the provided config file to one you can modify:
 
-    $ cp arduino_params.yaml my_arduino_params.yaml
+    $ cp arduino\_params.yaml my_arduino_params.yaml
 
 Bring up your copy of the params file (my\_arduino\_params.yaml) in
 your favorite text editor.  It should start off looking like this:
@@ -286,9 +292,9 @@ config file called my\_arduino\_params.yaml.  If you named your config
 file something different, change the name in the launch file.
 
 With your Arduino connected and running the MegaRobogaiaPololu sketch,
-launch the ros\_arduiono\_python node with your parameters:
+launch the ros\_arduino\_python node with your parameters:
 
-    $ roslaunch ros_arduino_python arduino.launch
+    $ roslaunch ros\_arduino\_python arduino.launch
 
 You should see something like the following output:
 
@@ -298,7 +304,7 @@ Connecting to Arduino on port /dev/ttyUSB0 ...
 Connected at 57600
 Arduino is ready.
 [INFO] [WallTime: 1355498525.954491] Connected to Arduino on port /dev/ttyUSB0 at 57600 baud
-[INFO] [WallTime: 1355498525.966825] motor_current_right {'rate': 5, 'type': 'PololuMotorCurrent', 'pin': 1}
+[INFO] [WallTime: 1355498525.966825] motor\_current\_right {'rate': 5, 'type': 'PololuMotorCurrent', 'pin': 1}
 [INFO]
 etc
 </pre>
@@ -311,20 +317,20 @@ Viewing Sensor Data
 -------------------
 To see the aggregated sensor data, echo the sensor state topic:
 
-    $ rostopic echo /arduino/sensor_state
+    $ rostopic echo /arduino/sensor\_state
 
 To see the data on any particular sensor, echo its topic name:
 
     $ rostopic echo /arduino/sensor/sensor_name
 
-For example, if you have a sensor called ir_front_center, you can see
+For example, if you have a sensor called ir\_front\_center, you can see
 its data using:
 
-    $ rostopic echo /arduino/sensor/ir_front_center
+    $ rostopic echo /arduino/sensor/ir\_front\_center
 
 You can also graph the range data using rxplot:
 
-    $ rxplot -p 60 /arduino/sensor/ir_front_center/range
+    $ rxplot -p 60 /arduino/sensor/ir\_front\_center/range
 
 
 Sending Twist Commands and Viewing Odometry Data
@@ -332,7 +338,7 @@ Sending Twist Commands and Viewing Odometry Data
 
 Place your robot on blocks, then try publishing a Twist command:
 
-    $ rostopic pub -1 /cmd_vel geometry_msgs/Twist '{ angular: {z: 0.5} }'
+    $ rostopic pub -1 /cmd\_vel geometry\_msgs/Twist '{ angular: {z: 0.5} }'
 
 The wheels should turn in a direction consistent with a
 counter-clockwise rotation (right wheel forward, left wheel backward).
@@ -342,7 +348,7 @@ then kill and restart the arduino.launch file.
 
 Stop the robot with the command:
 
-    $ rostopic pub -1 /cmd_vel geometry_msgs/Twist '{}'
+    $ rostopic pub -1 /cmd\_vel geometry\_msgs/Twist '{}'
 
 To view odometry data:
 
@@ -354,29 +360,29 @@ or
 
 ROS Services
 ------------
-The ros_arduino_python package also defines a few ROS services as follows:
+The ros\_arduino\_python package also defines a few ROS services as follows:
 
 **digital\_set\_direction** - set the direction of a digital pin
 
-    $ rosservice call /arduino/digital_set_direction pin direction
+    $ rosservice call /arduino/digital\_set\_direction pin direction
 
 where pin is the pin number and direction is 0 for input and 1 for output.
 
 **digital\_write** - send a LOW (0) or HIGH (1) signal to a digital pin
 
-    $ rosservice call /arduino/digital_write pin value
+    $ rosservice call /arduino/digital\_write pin value
 
 where pin is the pin number and value is 0 for LOW and 1 for HIGH.
 
 **servo\_write** - set the position of a servo
 
-    $ rosservice call /arduino/servo_write id pos
+    $ rosservice call /arduino/servo\_write id pos
 
 where id is the index of the servo as defined in the Arduino sketch (servos.h) and pos is the position in degrees (0 - 180).
 
 **servo\_read** - read the position of a servo
 
-    $ rosservice call /arduino/servo_read id
+    $ rosservice call /arduino/servo\_read id
 
 where id is the index of the servo as defined in the Arduino sketch (servos.h)
 
@@ -401,7 +407,7 @@ to this:
 #undef USE_BASE
 </pre>
 
-You also need to comment out the line that looks like this in the file encoder_driver.ino:
+**NOTE:** You also need to comment out the line that looks like this in the file encoder_driver.ino:
 
     #include "MegaEncoderCounter.h"
 
