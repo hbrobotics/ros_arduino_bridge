@@ -29,7 +29,7 @@ Official ROS Documentation
 --------------------------
 A standard ROS-style version of this documentation can be found on the ROS wiki at:
 
-http://www.ros.org/wiki/ros\_arduino\_bridge
+http://www.ros.org/wiki/ros_arduino_bridge
 
 
 System Requirements
@@ -78,7 +78,7 @@ Note that only root and the "dialout" group have read/write access.  Therefore, 
 
 To add yourself to the dialout group, run the command:
 
-    $ sudo usermod -a -G dialout your\_user\_name
+    $ sudo usermod -a -G dialout your_user_name
 
 where your\_user\_name is your Linux login name.  You will likely have to log out of your X-window session then log in again, or simply reboot your machine if you want to be sure.
 
@@ -92,8 +92,8 @@ Installation of the ros\_arduino\_bridge Stack
 ----------------------------------------------
 
     $ cd ~/ros_workspace
-    $ git clone https://github.com/hbrobotics/ros\_arduino\_bridge.git
-    $ cd ros\_arduino\_bridge
+    $ git clone https://github.com/hbrobotics/ros_arduino_bridge.git
+    $ cd ros_arduino_bridge
     $ rosmake
 
 The provided Arduino library is called ROSArduinoBridge and is
@@ -213,7 +213,7 @@ into that directory:
 
 Now copy the provided config file to one you can modify:
 
-    $ cp arduino\_params.yaml my_arduino_params.yaml
+    $ cp arduino_params.yaml my_arduino_params.yaml
 
 Bring up your copy of the params file (my\_arduino\_params.yaml) in
 your favorite text editor.  It should start off looking like this:
@@ -329,7 +329,7 @@ file something different, change the name in the launch file.
 With your Arduino connected and running the MegaRobogaiaPololu sketch,
 launch the ros\_arduino\_python node with your parameters:
 
-    $ roslaunch ros\_arduino\_python arduino.launch
+    $ roslaunch ros_arduino_python arduino.launch
 
 You should see something like the following output:
 
@@ -339,7 +339,7 @@ Connecting to Arduino on port /dev/ttyUSB0 ...
 Connected at 57600
 Arduino is ready.
 [INFO] [WallTime: 1355498525.954491] Connected to Arduino on port /dev/ttyUSB0 at 57600 baud
-[INFO] [WallTime: 1355498525.966825] motor\_current\_right {'rate': 5, 'type': 'PololuMotorCurrent', 'pin': 1}
+[INFO] [WallTime: 1355498525.966825] motor_current_right {'rate': 5, 'type': 'PololuMotorCurrent', 'pin': 1}
 [INFO]
 etc
 </pre>
@@ -352,7 +352,7 @@ Viewing Sensor Data
 -------------------
 To see the aggregated sensor data, echo the sensor state topic:
 
-    $ rostopic echo /arduino/sensor\_state
+    $ rostopic echo /arduino/sensor_state
 
 To see the data on any particular sensor, echo its topic name:
 
@@ -361,11 +361,11 @@ To see the data on any particular sensor, echo its topic name:
 For example, if you have a sensor called ir\_front\_center, you can see
 its data using:
 
-    $ rostopic echo /arduino/sensor/ir\_front\_center
+    $ rostopic echo /arduino/sensor/ir_front_center
 
 You can also graph the range data using rxplot:
 
-    $ rxplot -p 60 /arduino/sensor/ir\_front\_center/range
+    $ rxplot -p 60 /arduino/sensor/ir_front_center/range
 
 
 Sending Twist Commands and Viewing Odometry Data
@@ -373,7 +373,7 @@ Sending Twist Commands and Viewing Odometry Data
 
 Place your robot on blocks, then try publishing a Twist command:
 
-    $ rostopic pub -1 /cmd\_vel geometry\_msgs/Twist '{ angular: {z: 0.5} }'
+    $ rostopic pub -1 /cmd_vel geometry_msgs/Twist '{ angular: {z: 0.5} }'
 
 The wheels should turn in a direction consistent with a
 counter-clockwise rotation (right wheel forward, left wheel backward).
@@ -383,7 +383,7 @@ then kill and restart the arduino.launch file.
 
 Stop the robot with the command:
 
-    $ rostopic pub -1 /cmd\_vel geometry\_msgs/Twist '{}'
+    $ rostopic pub -1 /cmd_vel geometry_msgs/Twist '{}'
 
 To view odometry data:
 
@@ -399,25 +399,25 @@ The ros\_arduino\_python package also defines a few ROS services as follows:
 
 **digital\_set\_direction** - set the direction of a digital pin
 
-    $ rosservice call /arduino/digital\_set\_direction pin direction
+    $ rosservice call /arduino/digital_set_direction pin direction
 
 where pin is the pin number and direction is 0 for input and 1 for output.
 
 **digital\_write** - send a LOW (0) or HIGH (1) signal to a digital pin
 
-    $ rosservice call /arduino/digital\_write pin value
+    $ rosservice call /arduino/digital_write pin value
 
 where pin is the pin number and value is 0 for LOW and 1 for HIGH.
 
 **servo\_write** - set the position of a servo
 
-    $ rosservice call /arduino/servo\_write id pos
+    $ rosservice call /arduino/servo_write id pos
 
 where id is the index of the servo as defined in the Arduino sketch (servos.h) and pos is the position in degrees (0 - 180).
 
 **servo\_read** - read the position of a servo
 
-    $ rosservice call /arduino/servo\_read id
+    $ rosservice call /arduino/servo_read id
 
 where id is the index of the servo as defined in the Arduino sketch (servos.h)
 
