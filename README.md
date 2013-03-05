@@ -34,6 +34,19 @@ http://www.ros.org/wiki/ros_arduino_bridge
 
 System Requirements
 -------------------
+**Python Serial:** To install the python-serial package under Ubuntu, use the command:
+
+    $ sudo apt-get install python-serial
+
+On non-Ubuntu systems, use either:
+
+    $ sudo pip install --upgrade pyserial
+
+or
+
+    $ sudo easy_install -U pyserial
+
+
 The stack should work with any Arduino-compatible controller for reading sensors and controlling PWM servos.  However, to use the base controller, you will need a supported motor controller and encoder hardware as described above. If you do not have this hardware, you can still try the package for reading sensors and controlling servos.  See the NOTES section at the end of this document for instructions on how to do this.
 
 To use the base controller you must also install the appropriate libraries for your motor controller and encoders.  For the Pololu VNH5019 Dual Motor Shield, the library can be found at:
@@ -94,6 +107,7 @@ Installation of the ros\_arduino\_bridge Stack
     $ cd ~/ros_workspace
     $ git clone https://github.com/hbrobotics/ros_arduino_bridge.git
     $ cd ros_arduino_bridge
+    $ rosdep install ros_arduino_bridge
     $ rosmake
 
 The provided Arduino library is called ROSArduinoBridge and is
