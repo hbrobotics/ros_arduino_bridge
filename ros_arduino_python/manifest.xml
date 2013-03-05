@@ -16,7 +16,9 @@
   <depend package="nav_msgs"/>
   <depend package="tf"/>
   <depend package="ros_arduino_msgs"/>
-
+  
+  <rosdep name="python-serial"/>
+  
 </package>
 
 
