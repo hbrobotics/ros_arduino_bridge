@@ -107,7 +107,6 @@ Installation of the ros\_arduino\_bridge Stack
     $ cd ~/ros_workspace
     $ git clone https://github.com/hbrobotics/ros_arduino_bridge.git
     $ cd ros_arduino_bridge
-    $ rosdep install ros_arduino_bridge
     $ rosmake
 
 The provided Arduino library is called ROSArduinoBridge and is
