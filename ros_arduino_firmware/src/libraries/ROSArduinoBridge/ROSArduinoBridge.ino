@@ -236,6 +236,7 @@ void setup() {
 // Initialize the motor controller if used */
 #ifdef USE_BASE
   initMotorController();
+  resetPID();
 #endif
 
 /* Attach servos if used */
