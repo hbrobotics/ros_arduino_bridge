@@ -15,7 +15,7 @@ typedef struct {
   * Using previous input (PrevInput) instead of PrevError to avoid derivative kick,
   * see http://brettbeauregard.com/blog/2011/04/improving-the-beginner%E2%80%99s-pid-derivative-kick/
   */
-  long PrevInput;                // last input
+  int PrevInput;                // last input
   //int PrevErr;                   // last error
 
   /*
@@ -24,9 +24,9 @@ typedef struct {
   * see http://brettbeauregard.com/blog/2011/04/improving-the-beginner%E2%80%99s-pid-tuning-changes/
   */
   //int Ierror;
-  long ITerm;                    //integrated term
+  int ITerm;                    //integrated term
 
-  int output;                    // last motor setting
+  long output;                    // last motor setting
 }
 SetPointInfo;
 
@@ -45,8 +45,8 @@ unsigned char moving = 0; // is the base in motion?
 * when turning PID on to start moving
 * In particular, assign both Encoder and PrevEnc the current encoder value
 * See http://brettbeauregard.com/blog/2011/04/improving-the-beginner%E2%80%99s-pid-initialization/
-*  Note that the assumption here is that PID is only turned on
-*  when going from stop to moving, that's why we can init everything on zero.
+* Note that the assumption here is that PID is only turned on
+* when going from stop to moving, that's why we can init everything on zero.
 */
 void resetPID(){
    leftPID.TargetTicksPerFrame = 0.0;
@@ -68,19 +68,12 @@ void resetPID(){
 void doPID(SetPointInfo * p) {
   long Perror;
   long output;
-  long input;
+  int input;
 
   //Perror = p->TargetTicksPerFrame - (p->Encoder - p->PrevEnc);
   input = p->Encoder - p->PrevEnc;
   Perror = p->TargetTicksPerFrame - input;
 
-  /*
-  * Avoid reset windup,
-  * see http://brettbeauregard.com/blog/2011/04/improving-the-beginner%E2%80%99s-pid-reset-windup/
-  */
-  p->ITerm += (Ki * Perror);
-  if (p->ITerm > MAX_PWM) p->ITerm = MAX_PWM;
-  else if (p->ITerm < -MAX_PWM) p->ITerm = MAX_PWM;
 
   /*
   * Avoid derivative kick and allow tuning changes,
@@ -99,9 +92,11 @@ void doPID(SetPointInfo * p) {
     output = MAX_PWM;
   else if (output <= -MAX_PWM)
     output = -MAX_PWM;
-  //else
-  //  p->Ierror += Perror;
-
+  else
+  /*
+  * allow turning changes, see http://brettbeauregard.com/blog/2011/04/improving-the-beginner%E2%80%99s-pid-tuning-changes/
+  */
+    p->ITerm += Ki * Perror;
 
   p->output = output;
   p->PrevInput = input;
