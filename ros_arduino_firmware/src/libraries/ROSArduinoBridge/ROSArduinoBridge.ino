@@ -197,6 +197,7 @@ int runCommand() {
     break;
    case RESET_ENCODERS:
     resetEncoders();
+    resetPID();
     Serial.println("OK");
     break;
   case MOTOR_SPEEDS:
