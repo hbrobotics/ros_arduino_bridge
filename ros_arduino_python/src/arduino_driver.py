@@ -171,8 +171,7 @@ class Arduino:
                 attempts += 1
         except:
             self.mutex.release()
-            if not self.shutdown:
-                print "Exception executing command: " + cmd
+            print "Exception executing command: " + cmd
             value = None
         
         self.mutex.release()
@@ -205,8 +204,7 @@ class Arduino:
         except:
             self.mutex.release()
             print "Exception executing command: " + cmd
-            if not self.shutdown:
-                raise SerialException
+            raise SerialException
             return []
         
         try:
@@ -243,9 +241,8 @@ class Arduino:
             attempts += 1
         except:
             self.mutex.release()
-            if not self.shutdown:
-                print "execute_ack exception when executing", cmd
-                print sys.exc_info()
+            print "execute_ack exception when executing", cmd
+            print sys.exc_info()
             return 0
         
         self.mutex.release()
