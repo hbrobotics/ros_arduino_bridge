@@ -19,7 +19,6 @@
     http://www.gnu.org/licenses/gpl.html
 """
 
-import roslib; roslib.load_manifest('ros_arduino_python')
 import rospy
 from ros_arduino_python.arduino_driver import Arduino
 from ros_arduino_python.arduino_sensors import *
