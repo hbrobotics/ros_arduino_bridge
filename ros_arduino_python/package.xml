@@ -18,4 +18,5 @@
   <run_depend>nav_msgs</run_depend>
   <run_depend>tf</run_depend>
   <run_depend>ros_arduino_msgs</run_depend>
+  <run_depend>python-serial</run_depend>
 </package>
