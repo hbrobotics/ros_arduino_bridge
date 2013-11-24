@@ -84,7 +84,7 @@ class ArduinoROS():
         
         rospy.loginfo("Connected to Arduino on port " + self.port + " at " + str(self.baud) + " baud")
      
-        # Reservce a thread lock
+        # Reserve a thread lock
         mutex = thread.allocate_lock()
 
         # Initialize any sensors

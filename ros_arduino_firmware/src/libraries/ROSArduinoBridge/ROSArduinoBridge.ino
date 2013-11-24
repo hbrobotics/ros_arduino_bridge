@@ -197,6 +197,7 @@ int runCommand() {
     break;
    case RESET_ENCODERS:
     resetEncoders();
+    resetPID();
     Serial.println("OK");
     break;
   case MOTOR_SPEEDS:
@@ -236,6 +237,7 @@ void setup() {
 // Initialize the motor controller if used */
 #ifdef USE_BASE
   initMotorController();
+  resetPID();
 #endif
 
 /* Attach servos if used */

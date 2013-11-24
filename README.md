@@ -25,9 +25,28 @@ the PC. The base controller requires the use of a motor controller and encoders 
 
 * The library can be easily extended to include support for other motor controllers and encoder hardware or libraries.
 
+Official ROS Documentation
+--------------------------
+A standard ROS-style version of this documentation can be found on the ROS wiki at:
+
+http://www.ros.org/wiki/ros_arduino_bridge
+
 
 System Requirements
 -------------------
+**Python Serial:** To install the python-serial package under Ubuntu, use the command:
+
+    $ sudo apt-get install python-serial
+
+On non-Ubuntu systems, use either:
+
+    $ sudo pip install --upgrade pyserial
+
+or
+
+    $ sudo easy_install -U pyserial
+
+
 The stack should work with any Arduino-compatible controller for reading sensors and controlling PWM servos.  However, to use the base controller, you will need a supported motor controller and encoder hardware as described above. If you do not have this hardware, you can still try the package for reading sensors and controlling servos.  See the NOTES section at the end of this document for instructions on how to do this.
 
 To use the base controller you must also install the appropriate libraries for your motor controller and encoders.  For the Pololu VNH5019 Dual Motor Shield, the library can be found at:
@@ -48,9 +67,42 @@ sketchbook/libraries directory.
 Finally, it is assumed you are using version 1.0 or greater of the
 Arduino IDE.
 
+Preparing your Serial Port under Linux
+--------------------------------------
+Your Arduino will likely connect to your Linux computer as port /dev/ttyACM# or /dev/ttyUSB# where # is a number like 0, 1, 2, etc., depending on how many other devices are connected.  The easiest way to make the determination is to unplug all other USB devices, plug in your Arduino, then run the command:
 
-Installation
-------------
+    $ ls /dev/ttyACM*
+
+or 
+
+    $ ls /dev/ttyUSB*
+
+Hopefully, one of these two commands will return the result you're looking for (e.g. /dev/ttyACM0) and the other will return the error "No such file or directory".
+
+Next you need to make sure you have read/write access to the port.  Assuming your Arduino is connected on /dev/ttyACM0, run the command:
+
+    $ ls -l /dev/ttyACM0
+
+and you should see an output similar to the following:
+
+    crw-rw---- 1 root dialout 166, 0 2013-02-24 08:31 /dev/ttyACM0
+
+Note that only root and the "dialout" group have read/write access.  Therefore, you need to be a member of the dialout group.  You only have to do this once and it should then work for all USB devices you plug in later on.
+
+To add yourself to the dialout group, run the command:
+
+    $ sudo usermod -a -G dialout your_user_name
+
+where your\_user\_name is your Linux login name.  You will likely have to log out of your X-window session then log in again, or simply reboot your machine if you want to be sure.
+
+When you log back in again, try the command:
+
+    $ groups
+
+and you should see a list of groups you belong to including dialout. 
+
+Installation of the ros\_arduino\_bridge Stack
+----------------------------------------------
 
     $ cd ~/catkin_workspace/src
     $ git clone https://github.com/hbrobotics/ros_arduino_bridge.git
@@ -114,7 +166,9 @@ parameter as well as the pin numbers for the servos you have attached.
 
 Firmware Commands
 -----------------
-The ROSArduionLibrary accepts single-letter commands over the serial port for polling sensors, controlling servos, driving the robot, and reading encoders.  These commands can be sent to the Arduino over any serial interface, including the Serial Monitor in the Arduino IDE.
+The ROSArduinoLibrary accepts single-letter commands over the serial port for polling sensors, controlling servos, driving the robot, and reading encoders.  These commands can be sent to the Arduino over any serial interface, including the Serial Monitor in the Arduino IDE.
+
+**NOTE:** Before trying these commands, set the Serial Monitor baudrate to 57600 and the line terminator to "Carriage return" or "Both NL & CR" using the two pulldown menus on the lower right of the Serial Monitor window.
 
 The list of commands can be found in the file commands.h.  The current list includes:
 
@@ -155,7 +209,7 @@ Testing your Wiring Connections
 -------------------------------
 On a differential drive robot, the motors are connected to the motor controller terminals with opposite polarities to each other.  Similarly, the A/B leads from the encoders are connected in the reverse sense to each other.  However, you still need to make sure that (a) the wheels move forward when given a positive motor speed and (b) that the encoder counts increase when the wheels move forward.
 
-After **placing your robot on blocks**, you can use the Serial Monitor in the Arduino IDE to test both requirements.  Use the 'm' command to activate the motors, the 'e' command to get the encoder counts, and the 'r' command to reset the encoders to 0.  Remember that at the firmware level, motor speeds are given in encoder ticks per second so that for an encoder resolution of, say 4000 counts per wheel revolution, a command such as 'm 20 20' should move the wheels fairly slowly.  (The wheels will only move for 2 seconds which is the default setting for the AUTO_STOP_INTERVAL.)  Also remember that the first argument is the left motor speed and the second argument is the right motor speed.  Similarly, when using the 'e' command, the first number returned is the left encoder count and the second number is the right encoder count.
+After **placing your robot on blocks**, you can use the Serial Monitor in the Arduino IDE to test both requirements.  Use the 'm' command to activate the motors, the 'e' command to get the encoder counts, and the 'r' command to reset the encoders to 0.  Remember that at the firmware level, motor speeds are given in encoder ticks per second so that for an encoder resolution of, say 4000 counts per wheel revolution, a command such as 'm 20 20' should move the wheels fairly slowly.  (The wheels will only move for 2 seconds which is the default setting for the AUTO\_STOP\_INTERVAL.)  Also remember that the first argument is the left motor speed and the second argument is the right motor speed.  Similarly, when using the 'e' command, the first number returned is the left encoder count and the second number is the right encoder count.
 
 Finally, you can use the 'r' and 'e' commands to verify the expected encoder counts by rotating the wheels by hand roughly one full turn and checking the reported counts.
 
@@ -286,7 +340,7 @@ config file called my\_arduino\_params.yaml.  If you named your config
 file something different, change the name in the launch file.
 
 With your Arduino connected and running the MegaRobogaiaPololu sketch,
-launch the ros\_arduiono\_python node with your parameters:
+launch the ros\_arduino\_python node with your parameters:
 
     $ roslaunch ros_arduino_python arduino.launch
 
@@ -317,7 +371,7 @@ To see the data on any particular sensor, echo its topic name:
 
     $ rostopic echo /arduino/sensor/sensor_name
 
-For example, if you have a sensor called ir_front_center, you can see
+For example, if you have a sensor called ir\_front\_center, you can see
 its data using:
 
     $ rostopic echo /arduino/sensor/ir_front_center
@@ -354,7 +408,7 @@ or
 
 ROS Services
 ------------
-The ros_arduino_python package also defines a few ROS services as follows:
+The ros\_arduino\_python package also defines a few ROS services as follows:
 
 **digital\_set\_direction** - set the direction of a digital pin
 
@@ -401,7 +455,7 @@ to this:
 #undef USE_BASE
 </pre>
 
-You also need to comment out the line that looks like this in the file encoder_driver.ino:
+**NOTE:** You also need to comment out the line that looks like this in the file encoder_driver.ino:
 
     #include "MegaEncoderCounter.h"
 

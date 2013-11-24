@@ -1,4 +1,9 @@
-port: /dev/ttyUSB0
+# For a direct USB cable connection, the port name is typically
+# /dev/ttyACM# where is # is a number such as 0, 1, 2, etc
+# For a wireless connection like XBee, the port is typically
+# /dev/ttyUSB# where # is a number such as 0, 1, 2, etc.
+
+port: /dev/ttyACM0
 baud: 57600
 timeout: 0.1
 

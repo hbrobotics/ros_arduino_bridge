@@ -25,7 +25,7 @@ import thread
 from math import pi as PI, degrees, radians
 import os
 import time
-import sys
+import sys, traceback
 from serial.serialutil import SerialException
 from serial import Serial
 
@@ -68,15 +68,18 @@ class Arduino:
             test = self.get_baud()
             if test != self.baudrate:
                 time.sleep(1)
-                test = self.get_baud()
+                test = self.get_baud()   
                 if test != self.baudrate:
                     raise SerialException
             print "Connected at", self.baudrate
             print "Arduino is ready."
 
         except SerialException:
+            print "Serial Exception:"
+            print sys.exc_info()
+            print "Traceback follows:"
+            traceback.print_exc(file=sys.stdout)
             print "Cannot connect to Arduino!"
-            print "Make sure you are plugged in and turned on."
             os._exit(1)
 
     def open(self): 
@@ -168,8 +171,7 @@ class Arduino:
                 attempts += 1
         except:
             self.mutex.release()
-            if not self.shutdown:
-                print "Exception executing command: " + cmd
+            print "Exception executing command: " + cmd
             value = None
         
         self.mutex.release()
@@ -202,8 +204,7 @@ class Arduino:
         except:
             self.mutex.release()
             print "Exception executing command: " + cmd
-            if not self.shutdown:
-                raise SerialException
+            raise SerialException
             return []
         
         try:
@@ -240,9 +241,8 @@ class Arduino:
             attempts += 1
         except:
             self.mutex.release()
-            if not self.shutdown:
-                print "execute_ack exception when executing", cmd
-                print sys.exc_info()
+            print "execute_ack exception when executing", cmd
+            print sys.exc_info()
             return 0
         
         self.mutex.release()
