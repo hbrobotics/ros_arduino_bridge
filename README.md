@@ -1,3 +1,7 @@
+Overview
+--------
+This branch (groovy-devel) is intended for ROS Groovy, and uses the rosmake buildsystem. For a catkin version, please see the hydro-devel branch.
+
 This ROS stack includes an Arduino library (called ROSArduinoBridge) and a collection of ROS packages for controlling an Arduino-based robot using standard ROS messages and services.  The stack does **not** depend on ROS Serial.
 
 Features of the stack include:
