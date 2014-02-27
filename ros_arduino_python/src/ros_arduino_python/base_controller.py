@@ -31,10 +31,11 @@ from tf.broadcaster import TransformBroadcaster
  
 """ Class to receive Twist commands and publish Odometry data """
 class BaseController:
-    def __init__(self, arduino):
+    def __init__(self, arduino, base_frame):
         self.arduino = arduino
+        self.base_frame = base_frame
         self.rate = float(rospy.get_param("~base_controller_rate", 10))
-        self.timeout = rospy.get_param('~base_controller_timeout', 1.0)
+        self.timeout = rospy.get_param("~base_controller_timeout", 1.0)
         self.stopped = False
                  
         pid_params = dict()
@@ -90,7 +91,7 @@ class BaseController:
         self.odomBroadcaster = TransformBroadcaster()
         
         rospy.loginfo("Started base controller for a base of " + str(self.wheel_track) + "m wide with " + str(self.encoder_resolution) + " ticks per rev")
-        rospy.loginfo("Publishing odometry data at: " + str(self.rate) + " Hz")
+        rospy.loginfo("Publishing odometry data at: " + str(self.rate) + " Hz using " + str(self.base_frame) + " as base frame")
         
     def setup_pid(self, pid_params):
         # Check to see if any PID parameters are missing
@@ -166,13 +167,13 @@ class BaseController:
                 (self.x, self.y, 0), 
                 (quaternion.x, quaternion.y, quaternion.z, quaternion.w),
                 rospy.Time.now(),
-                "base_link",
+                self.base_frame,
                 "odom"
                 )
     
             odom = Odometry()
             odom.header.frame_id = "odom"
-            odom.child_frame_id = "base_link"
+            odom.child_frame_id = self.base_frame
             odom.header.stamp = now
             odom.pose.pose.position.x = self.x
             odom.pose.pose.position.y = self.y

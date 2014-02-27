@@ -13,6 +13,9 @@ sensorstate_rate: 10
 use_base_controller: False
 base_controller_rate: 10
 
+# For a robot that uses base_footprint, change base_frame to base_footprint
+base_frame: base_link
+
 # === Robot drivetrain parameters
 #wheel_diameter: 0.146
 #wheel_track: 0.2969

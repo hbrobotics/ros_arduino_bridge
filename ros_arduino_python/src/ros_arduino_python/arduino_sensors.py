@@ -39,7 +39,7 @@ class MessageType:
     BOOL = 5
     
 class Sensor(object):
-    def __init__(self, controller, name, pin, rate, frame_id="/base_link", direction="input", **kwargs):
+    def __init__(self, controller, name, pin, rate, frame_id, direction="input", **kwargs):
         self.controller = controller
         self.name = name
         self.pin = pin
