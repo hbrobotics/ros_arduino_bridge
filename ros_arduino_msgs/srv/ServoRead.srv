@@ -1,3 +1,3 @@
 uint8 id
 ---
-int16 value
+float32 value
