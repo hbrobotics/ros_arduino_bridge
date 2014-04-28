@@ -179,7 +179,7 @@ class ArduinoROS():
               
     def AnalogWriteHandler(self, req):
 	self.controller.analog_write(req.pin, req.value)
-	return AnalogWriteRrsponse()
+	return AnalogWriteResponse()
  
     def shutdown(self):
         # Stop the robot
