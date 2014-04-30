@@ -76,8 +76,11 @@ class ArduinoROS():
         
         # A service to turn a digital sensor on or off
         rospy.Service('~digital_write', DigitalWrite, self.DigitalWriteHandler)
+       
+	# A service to set pwm values for the pins
+	rospy.Service('~analog_write', AnalogWrite, self.AnalogWriteHandler)
 
-        # Initialize the controlller
+	# Initialize the controlller
         self.controller = Arduino(self.port, self.baud, self.timeout)
         
         # Make the connection
@@ -173,7 +176,11 @@ class ArduinoROS():
     def DigitalWriteHandler(self, req):
         self.controller.digital_write(req.pin, req.value)
         return DigitalWriteResponse()
-               
+              
+    def AnalogWriteHandler(self, req):
+	self.controller.analog_write(req.pin, req.value)
+	return AnalogWriteResponse()
+ 
     def shutdown(self):
         # Stop the robot
         try:
