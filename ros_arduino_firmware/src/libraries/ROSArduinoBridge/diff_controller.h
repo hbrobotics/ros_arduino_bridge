@@ -50,14 +50,14 @@ unsigned char moving = 0; // is the base in motion?
 */
 void resetPID(){
    leftPID.TargetTicksPerFrame = 0.0;
-   leftPID.Encoder = readEncoder(0);
+   leftPID.Encoder = readEncoder(LEFT);
    leftPID.PrevEnc = leftPID.Encoder;
    leftPID.output = 0;
    leftPID.PrevInput = 0;
    leftPID.ITerm = 0;
 
    rightPID.TargetTicksPerFrame = 0.0;
-   rightPID.Encoder = readEncoder(1);
+   rightPID.Encoder = readEncoder(RIGHT);
    rightPID.PrevEnc = rightPID.Encoder;
    rightPID.output = 0;
    rightPID.PrevInput = 0;
@@ -105,8 +105,8 @@ void doPID(SetPointInfo * p) {
 /* Read the encoder values and call the PID routine */
 void updatePID() {
   /* Read the encoders */
-  leftPID.Encoder = readEncoder(0);
-  rightPID.Encoder = readEncoder(1);
+  leftPID.Encoder = readEncoder(LEFT);
+  rightPID.Encoder = readEncoder(RIGHT);
   
   /* If we're not moving there is nothing more to do */
   if (!moving){
