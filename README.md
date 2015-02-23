@@ -430,7 +430,7 @@ where pin is the pin number and value is 0 for LOW and 1 for HIGH.
 
     $ rosservice call /arduino/servo_write id pos
 
-where id is the index of the servo as defined in the Arduino sketch (servos.h) and pos is the position in degrees (0 - 180).
+where id is the index of the servo as defined in the Arduino sketch (servos.h) and pos is the position in radians (0 - 3.14).
 
 **servo\_read** - read the position of a servo
 
