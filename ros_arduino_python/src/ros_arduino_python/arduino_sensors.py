@@ -87,7 +87,7 @@ class AnalogSensor(Sensor):
         self.msg = Analog()
         self.msg.header.frame_id = self.frame_id
         
-        self.pub = rospy.Publisher("~sensor/" + self.name, Analog)
+        self.pub = rospy.Publisher("~sensor/" + self.name, Analog, queue_size=5)
         
         if self.direction == "output":
             self.controller.pin_mode(self.pin, OUTPUT)
@@ -111,7 +111,7 @@ class AnalogFloatSensor(Sensor):
         self.msg = AnalogFloat()
         self.msg.header.frame_id = self.frame_id
         
-        self.pub = rospy.Publisher("~sensor/" + self.name, AnalogFloat)
+        self.pub = rospy.Publisher("~sensor/" + self.name, AnalogFloat, queue_size=5)
         
         if self.direction == "output":
             self.controller.pin_mode(self.pin, OUTPUT)
@@ -136,7 +136,7 @@ class DigitalSensor(Sensor):
         self.msg = Digital()
         self.msg.header.frame_id = self.frame_id
         
-        self.pub = rospy.Publisher("~sensor/" + self.name, Digital)
+        self.pub = rospy.Publisher("~sensor/" + self.name, Digital, queue_size=5)
         
         if self.direction == "output":
             self.controller.pin_mode(self.pin, OUTPUT)
@@ -163,7 +163,7 @@ class RangeSensor(Sensor):
         self.msg = Range()
         self.msg.header.frame_id = self.frame_id
         
-        self.pub = rospy.Publisher("~sensor/" + self.name, Range)
+        self.pub = rospy.Publisher("~sensor/" + self.name, Range, queue_size=5)
         
     def read_value(self):
         self.msg.header.stamp = rospy.Time.now()
