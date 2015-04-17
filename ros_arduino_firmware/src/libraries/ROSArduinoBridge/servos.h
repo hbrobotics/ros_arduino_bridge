@@ -8,7 +8,7 @@
 // between each one degree step the servo travels.  Increasing 
 // this number will make the servo sweep more slowly.  
 // Decreasing this number will make the servo sweep more quickly.  
-#define SWEEP_COMMAND_INTERVAL 150 // ms
+#define SWEEP_COMMAND_INTERVAL 0 // ms
 
 byte servoPins [N_SERVOS] = { 3 };
 byte servoInitPosition [N_SERVOS] = { 90 }; // degrees
