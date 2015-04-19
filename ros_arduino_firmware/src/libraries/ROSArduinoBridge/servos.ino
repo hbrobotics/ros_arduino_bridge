@@ -22,9 +22,13 @@ SweepServo::SweepServo()
 
 
 // Init
-void SweepServo::initServo(int servoPin, int initPosition)
+void SweepServo::initServo(
+    int servoPin,
+    int stepDelayMs,
+    int initPosition)
 {
   this->servo.attach(servoPin);
+  this->stepDelayMs = stepDelayMs;
   this->currentPositionDegrees = initPosition;
   this->targetPositionDegrees = initPosition;
   this->lastSweepCommand = millis();
@@ -39,7 +43,7 @@ void SweepServo::doSweep()
   int delta = millis() - this->lastSweepCommand;
 
   // Check if time for a step
-  if (delta > SWEEP_COMMAND_INTERVAL) {
+  if (delta > this->stepDelayMs) {
     // Check step direction
     if (this->targetPositionDegrees > this->currentPositionDegrees) {
       this->currentPositionDegrees++;

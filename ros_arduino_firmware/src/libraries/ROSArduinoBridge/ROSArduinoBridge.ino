@@ -265,12 +265,15 @@ void setup() {
 #endif
 
 /* Attach servos if used */
-#ifdef USE_SERVOS
-  int i;
-  for (i = 0; i < N_SERVOS; i++) {
-    servos[i].initServo(servoPins[i], servoInitPosition[i]);
-  }
-#endif
+  #ifdef USE_SERVOS
+    int i;
+    for (i = 0; i < N_SERVOS; i++) {
+      servos[i].initServo(
+          servoPins[i],
+          stepDelay[i],
+          servoInitPosition[i]);
+    }
+  #endif
 }
 
 /* Enter the main loop.  Read and parse input from the serial port
