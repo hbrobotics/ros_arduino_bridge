@@ -45,8 +45,8 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#define USE_BASE      // Enable the base controller code
-//#undef USE_BASE     // Disable the base controller code
+//#define USE_BASE      // Enable the base controller code
+#undef USE_BASE     // Disable the base controller code
 
 /* Define the motor controller and encoder library you are using */
 #ifdef USE_BASE
@@ -63,8 +63,8 @@
    //#define ARDUINO_ENC_COUNTER
 #endif
 
-//#define USE_SERVOS  // Enable use of PWM servos as defined in servos.h
-#undef USE_SERVOS     // Disable use of PWM servos
+#define USE_SERVOS  // Enable use of PWM servos as defined in servos.h
+//#undef USE_SERVOS     // Disable use of PWM servos
 
 /* Serial port baud rate */
 #define BAUDRATE     57600
@@ -184,11 +184,11 @@ int runCommand() {
     break;
 #ifdef USE_SERVOS
   case SERVO_WRITE:
-    servos[arg1].write(arg2);
+    servos[arg1].setTargetPosition(arg2);
     Serial.println("OK");
     break;
   case SERVO_READ:
-    Serial.println(servos[arg1].read());
+    Serial.println(servos[arg1].getServo().read());
     break;
 #endif
     
@@ -265,12 +265,15 @@ void setup() {
 #endif
 
 /* Attach servos if used */
-#ifdef USE_SERVOS
-  int i;
-  for (i = 0; i < N_SERVOS; i++) {
-    servos[i].attach(servoPins[i]);
-  }
-#endif
+  #ifdef USE_SERVOS
+    int i;
+    for (i = 0; i < N_SERVOS; i++) {
+      servos[i].initServo(
+          servoPins[i],
+          stepDelay[i],
+          servoInitPosition[i]);
+    }
+  #endif
 }
 
 /* Enter the main loop.  Read and parse input from the serial port
@@ -330,12 +333,14 @@ void loop() {
     setMotorSpeeds(0, 0);
     moving = 0;
   }
+#endif
 
+// Sweep servos
+#ifdef USE_SERVOS
+  int i;
+  for (i = 0; i < N_SERVOS; i++) {
+    servos[i].doSweep();
+  }
 #endif
 }
-
-
-
-
-
 
