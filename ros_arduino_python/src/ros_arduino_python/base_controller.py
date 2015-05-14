@@ -50,10 +50,7 @@ class BaseController:
         
         self.accel_limit = rospy.get_param('~accel_limit', 0.1)
         self.motors_reversed = rospy.get_param("~motors_reversed", False)
-	self.left_motor_reversed = rospy.get_param("~left_motor_reversed", False)
-	self.right_motor_reversed = rospy.get_param("~right_motor_reversed", False)
-	arduino.motors_configure(self.motors_reversed, self.left_motor_reversed, self.right_motor_reversed)
-
+        
         # Set up PID parameters and check for missing values
         self.setup_pid(pid_params)
             

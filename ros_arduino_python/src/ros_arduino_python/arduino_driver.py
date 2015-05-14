@@ -49,9 +49,6 @@ class Arduino:
         self.encoder_count = 0
         self.writeTimeout = timeout
         self.interCharTimeout = timeout / 30.
-	self.motors_reversed = False
-	self.left_motor_reversed = False
-	self.right_motor_reversed = False
     
         # Keep things thread safe
         self.mutex = thread.allocate_lock()
@@ -95,12 +92,6 @@ class Arduino:
         '''
         self.port.close() 
     
-    def motors_configure(self, motors_reversed = False,
-      left_motor_reversed = False, right_motor_reversed = False):
-	self.motors_reversed = motors_reversed
-	self.left_motor_reversed = left_motor_reversed
-	self.right_motor_reversed = right_motor_reversed
-
     def send(self, cmd):
         ''' This command should not be used on its own: it is called by the execute commands
             below in a thread safe manner.
@@ -276,12 +267,6 @@ class Arduino:
             raise SerialException
             return None
         else:
-	    if self.motors_reversed:
-		values[0], values[1] = values[1], values[0]
-	    if self.left_motor_reversed:
-		values[0] = -values[0]
-	    if self.right_motor_reversed:
-		values[1] = -values[1]
             return values
 
     def reset_encoders(self):
@@ -292,13 +277,6 @@ class Arduino:
     def drive(self, right, left):
         ''' Speeds are given in encoder ticks per PID interval
         '''
-	if self.left_motor_reversed:
-	    left = -left
-	if self.right_motor_reversed:
-	    right = -right
-	if self.motors_reversed:
-	    left, right = right, left
-
         return self.execute_ack('m %d %d' %(right, left))
     
     def drive_m_per_s(self, right, left):

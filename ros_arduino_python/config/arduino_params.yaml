@@ -22,8 +22,6 @@ base_frame: base_link
 #encoder_resolution: 8384 # from Pololu for 131:1 motors
 #gear_reduction: 1.0
 #motors_reversed: True
-#left_motor_reversed: True
-#right_motor_reversed: True
 
 # === PID parameters
 #Kp: 10
