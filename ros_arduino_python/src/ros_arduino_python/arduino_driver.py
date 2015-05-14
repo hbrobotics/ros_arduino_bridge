@@ -95,7 +95,7 @@ class Arduino:
         '''
         self.port.close() 
     
-    def motors_configure(motors_reversed = False,
+    def motors_configure(self, motors_reversed = False,
       left_motor_reversed = False, right_motor_reversed = False):
 	self.motors_reversed = motors_reversed
 	self.left_motor_reversed = left_motor_reversed
