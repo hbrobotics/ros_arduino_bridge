@@ -9,7 +9,7 @@
    
 #ifdef USE_BASE
 
-#if defined ROBOGAIA
+#ifdef ROBOGAIA
   /* The Robogaia Mega Encoder shield */
   #include "MegaEncoderCounter.h"
 
