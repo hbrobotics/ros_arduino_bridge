@@ -75,12 +75,12 @@ class ArduinoROS():
         rospy.Service('~digital_set_direction', DigitalSetDirection, self.DigitalSetDirectionHandler)
         
         # A service to turn a digital sensor on or off
-        rospy.Service('~digital_write', DigitalWrite, self.DigitalWriteHandler)
-       
-	# A service to set pwm values for the pins
-	rospy.Service('~analog_write', AnalogWrite, self.AnalogWriteHandler)
+        rospy.Service('~digital_write', DigitalWrite, self.DigitalWriteHandler)     
 
-	# Initialize the controlller
+        # A service to set pwm values for the pins
+        rospy.Service('~analog_write', AnalogWrite, self.AnalogWriteHandler)
+
+        # Initialize the controlller
         self.controller = Arduino(self.port, self.baud, self.timeout)
         
         # Make the connection
