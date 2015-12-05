@@ -6,6 +6,7 @@ find_package(catkin REQUIRED COMPONENTS std_msgs message_generation)
 add_message_files(FILES
                   AnalogFloat.msg
                   Analog.msg
+                  ArduinoConstants.msg
                   Digital.msg
                   SensorState.msg
                  )
