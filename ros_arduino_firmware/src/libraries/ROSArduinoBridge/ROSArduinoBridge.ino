@@ -45,8 +45,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-//#define USE_BASE      // Enable the base controller code
-#undef USE_BASE     // Disable the base controller code
+//#define USE_BASE      // Enable/disable the base controller code
 
 /* Define the motor controller and encoder library you are using */
 #ifdef USE_BASE
