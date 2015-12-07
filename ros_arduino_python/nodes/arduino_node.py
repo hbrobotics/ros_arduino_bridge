@@ -129,7 +129,7 @@ class ArduinoROS():
 #                    self.sensors[len(self.sensors)]['output_pin'] = params['output_pin']
 
             self.mySensors.append(sensor)
-            rospy.loginfo(name + " " + str(params))
+            rospy.loginfo(name + " " + str(params) + " published on topic " + rospy.get_name() + "/sensor/" + name)
               
         # Initialize the base controller if used
         if self.use_base_controller:
