@@ -27,7 +27,7 @@
     if (i == LEFT) return encoders.YAxisReset();
     else return encoders.XAxisReset();
   }
-#elif ARDUINO_ENC_COUNTER
+#elif defined(ARDUINO_ENC_COUNTER)
   volatile long left_enc_pos = 0L;
   volatile long right_enc_pos = 0L;
   static const int8_t ENC_STATES [] = {0,1,-1,0,-1,0,0,1,1,0,0,-1,0,-1,1,0};  //encoder lookup table
