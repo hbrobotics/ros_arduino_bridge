@@ -9,7 +9,7 @@
 
 #ifdef USE_BASE
    
-#if defined POLOLU_VNH5019
+#ifdef POLOLU_VNH5019
   /* Include the Pololu library */
   #include "DualVNH5019MotorShield.h"
 
