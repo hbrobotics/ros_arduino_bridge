@@ -66,8 +66,11 @@
 #define USE_SERVOS  // Enable use of PWM servos as defined in servos.h
 //#undef USE_SERVOS     // Disable use of PWM servos
 
-/* Serial port baud rate */
-#define BAUDRATE     57600
+/* Include servo support if required */
+#ifdef USE_SERVOS
+   #include <Servo.h>
+   #include "servos.h"
+#endif
 
 /* Maximum PWM signal */
 #define MAX_PWM        255
@@ -83,12 +86,6 @@
 
 /* Sensor functions */
 #include "sensors.h"
-
-/* Include servo support if required */
-#ifdef USE_SERVOS
-   #include <Servo.h>
-   #include "servos.h"
-#endif
 
 #ifdef USE_BASE
   /* Motor driver function definitions */
@@ -116,6 +113,7 @@
 #endif
 
 /* Variable initialization */
+#define BAUDRATE     57600
 
 // A pair of varibles to help parse serial commands (thanks Fergs)
 int arg = 0;
