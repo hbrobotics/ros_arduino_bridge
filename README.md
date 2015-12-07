@@ -50,6 +50,8 @@ or
 
     $ sudo easy_install -U pyserial
 
+**Arduino IDE 1.6.6 or Higher**
+Note that the preprocessing of conditional #include statements is broken in earlier versions of the Arduino IDE.  To ensure that the ROS Arduino Bridge firmware compiles correctly, be sure to install version 1.6.6 or higher of the Arduino IDE.  You can download the IDE from https://www.arduino.cc/en/Main/Software.
 
 The stack should work with any Arduino-compatible controller for reading sensors and controlling PWM servos.  However, to use the base controller, you will need a supported motor controller and encoder hardware as described above. If you do not have this hardware, you can still try the package for reading sensors and controlling servos.  See the NOTES section at the end of this document for instructions on how to do this.
 
