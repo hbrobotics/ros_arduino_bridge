@@ -62,12 +62,11 @@
    //#define ARDUINO_ENC_COUNTER
 #endif
 
-#define USE_SERVOS  // Enable use of PWM servos as defined in servos.h
-//#undef USE_SERVOS     // Disable use of PWM servos
+#define USE_SERVOS  // Enable/disable use of PWM servos as defined in servos.h
 
 /* Include servo support if required */
 #ifdef USE_SERVOS
-   #include <Servo.h>
+   #include "Servo.h"
    #include "servos.h"
 #endif
 
