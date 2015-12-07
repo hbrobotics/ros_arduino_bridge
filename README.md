@@ -1,21 +1,9 @@
-<<<<<<< HEAD
-This is an old branch, please update to one of:
-=======
 Overview
 --------
 This branch (indigo-devel) is intended for ROS Indigo and above, and uses the Catkin buildsystem. It may also be compatible with ROS Hydro.
 
 This ROS stack includes an Arduino library (called ROSArduinoBridge) and a collection of ROS packages for controlling an Arduino-based robot using standard ROS messages and services.  The stack does **not** depend on ROS Serial.
->>>>>>> indigo-devel
 
- * groovy-devel - uses rosmake
- * hydro-devel - uses catkin, intended for ROS Hydro and later, may work on Groovy.
-
-To checkout a branch
-
-<<<<<<< HEAD
-        git checkout hydro-devel
-=======
 * Can also read data from generic analog and digital sensors
 
 * Can control digital outputs (e.g. turn a switch or LED on and off)
