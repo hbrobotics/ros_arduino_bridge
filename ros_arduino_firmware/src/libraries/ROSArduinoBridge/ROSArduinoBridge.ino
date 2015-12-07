@@ -72,9 +72,6 @@
    #include "servos.h"
 #endif
 
-/* Maximum PWM signal */
-#define MAX_PWM        255
-
 #if defined(ARDUINO) && ARDUINO >= 100
 #include "Arduino.h"
 #else

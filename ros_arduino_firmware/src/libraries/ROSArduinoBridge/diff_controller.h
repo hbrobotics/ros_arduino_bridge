@@ -48,6 +48,10 @@ unsigned char moving = 0; // is the base in motion?
 * Note that the assumption here is that PID is only turned on
 * when going from stop to moving, that's why we can init everything on zero.
 */
+
+/* Maximum PWM signal */
+#define MAX_PWM        255
+
 void resetPID(){
    leftPID.TargetTicksPerFrame = 0.0;
    leftPID.Encoder = readEncoder(LEFT);
