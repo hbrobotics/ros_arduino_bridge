@@ -13,7 +13,6 @@ Features of the stack include:
 * Can control digital outputs (e.g. turn a switch or LED on and off)
 
 * Support for PWM servos
-
 * Configurable base controller if using the required hardware
 
 The stack includes a base controller for a differential drive
@@ -151,19 +150,16 @@ Choose one of the supported motor controllers by uncommenting its #define statem
 
 Choose a supported encoder library by by uncommenting its #define statement and commenting out any others.  At the moment, only the Robogaia Mega Encoder shield is supported and it is chosen by default.
 
-If you want to control PWM servos attached to your controller, change
-the two lines that look like this:
-
-<pre>
-//#define USE_SERVOS
-#undef USE_SERVOS
-</pre>
-
-to this:
+If you want to control PWM servos attached to your controller, look for the line:
 
 <pre>
 #define USE_SERVOS
-//#undef USE_SERVOS
+</pre>
+
+and make sure it is not commented out like this:
+
+<pre>
+//#define USE_SERVOS
 </pre>
 
 You must then edit the include file servos.h and change the N_SERVOS
@@ -473,21 +469,19 @@ follow the instructions below so that you can still use your
 Arduino-compatible controller to read sensors and control PWM servos.
 
 First, you need to edit the ROSArduinoBridge sketch. At the top of
-the file, change the two lines that look like this:
+the file comment out the line:
 
 <pre>
 #define USE_BASE
-//#undef USE_BASE
 </pre>
 
-to this:
+so that it looks like this:
 
 <pre>
 //#define USE_BASE
-#undef USE_BASE
 </pre>
 
-**NOTE:** You also need to comment out the line that looks like this in the file encoder_driver.ino:
+**NOTE:** If you are using a version of the Arduino IDE previous to 1.6.6, you also need to comment out the line that looks like this in the file encoder_driver.ino:
 
     #include "MegaEncoderCounter.h"
 
