@@ -63,14 +63,14 @@ class Servo(Joint):
         self.neutral = radians(rospy.get_param(n + "neutral", 90.0))       # degrees
         self.max_angle = radians(rospy.get_param(n + "max_angle", 90.0))   # degrees
         self.min_angle = radians(rospy.get_param(n + "min_angle", -90.0))  # degrees
-        self.range = radians(rospy.get_param(n + "range", 180)) # degrees
+        self.range = radians(rospy.get_param(n + "range", 180))            # degrees
         self.max_speed = radians(rospy.get_param(n + "max_speed", 250.0))  # deg/s
 
         # Do we want to reverse positive motion
         self.invert = rospy.get_param(n + "invert", False)
         
         # Where to we want the servo positioned
-        self.desired = self.neutral - radians(rospy.get_param(n + "init_position", 90))
+        self.desired = self.neutral - radians(rospy.get_param(n + "init_position", 0))
         
         # Where is the servo positioned now
         self.position = 0.0
