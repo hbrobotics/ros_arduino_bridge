@@ -309,11 +309,15 @@ class Arduino:
     
     def pin_mode(self, pin, mode):
         return self.execute_ack('c %d %d' %(pin, mode))
+    
+    def config_servo(self, pin, step_delay):
+        ''' Configure a PWM servo '''
+        return self.execute_ack('j %d %d' %(pin, step_delay))
 
     def servo_write(self, id, pos):
         ''' Usage: servo_write(id, pos)
             Position is given in radians and converted to degrees before sending
-        '''        
+        '''
         return self.execute_ack('s %d %d' %(id, min(SERVO_MAX, max(SERVO_MIN, degrees(pos)))))
     
     def servo_read(self, id):
@@ -321,7 +325,25 @@ class Arduino:
             The returned position is converted from degrees to radians
         '''        
         return radians(self.execute('t %d' %id))
+    
+    def set_servo_delay(self, id, delay):
+        ''' Usage: set_servo_delay(id, delay)
+            Set the delay in ms inbetween servo position updates.  Controls speed of servo movement.
+        '''
+        return self.execute_ack('v %d %d' %(id, delay))
 
+    def detach_servo(self, id):
+        ''' Usage: detach_servo(id)
+            Detach a servo from control by the Arduino
+        '''        
+        return self.execute_ack('z %d' %id)
+    
+    def attach_servo(self, id):
+        ''' Usage: attach_servo(id)
+            Attach a servo to the Arduino
+        '''        
+        return self.execute_ack('y %d' %id)
+    
     def ping(self, pin):
         ''' The srf05/Ping command queries an SRF05/Ping sonar sensor
             connected to the General Purpose I/O line pinId for a distance,

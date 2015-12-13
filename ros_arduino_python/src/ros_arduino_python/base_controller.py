@@ -20,7 +20,7 @@
     
     http://www.gnu.org/licenses
 """
-import roslib
+
 import rospy
 import os
 

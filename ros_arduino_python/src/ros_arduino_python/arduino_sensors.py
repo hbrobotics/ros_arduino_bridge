@@ -19,7 +19,6 @@
     http://www.gnu.org/licenses/gpl.html
 """
 
-import roslib
 import rospy
 from sensor_msgs.msg import Range
 from ros_arduino_msgs.msg import *

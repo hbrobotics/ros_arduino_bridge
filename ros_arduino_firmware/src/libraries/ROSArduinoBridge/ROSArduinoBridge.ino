@@ -11,7 +11,7 @@
     Created for the Pi Robot Project: http://www.pirobot.org
     and the Home Brew Robotics Club (HBRC): http://hbrobotics.org
     
-    Authors: Patrick Goebel, James Nugen
+    Authors: Patrick Goebel, James Nugen, Nathaniel Gallinger
 
     Inspired and modeled after the ArbotiX driver by Michael Ferguson
     
@@ -62,12 +62,20 @@
    //#define ARDUINO_ENC_COUNTER
 #endif
 
-#define USE_SERVOS  // Enable/disable use of PWM servos as defined in servos.h
+//#define USE_SERVOS  // Enable/disable use of old PWM servo support as defined in servos.h
 
-/* Include servo support if required */
+#define USE_SERVOS2  // Enable/disable use of new PWM servo support as defined in servos2.h
+
+/* Include old servo support if required */
 #ifdef USE_SERVOS
    #include "Servo.h"
    #include "servos.h"
+
+/* Include new servo support if desired */
+#elif defined(USE_SERVOS2)
+   #include "Servo.h"
+   #include "servos2.h"
+   int nServos = 0;
 #endif
 
 #if defined(ARDUINO) && ARDUINO >= 100
@@ -141,13 +149,13 @@ void resetCommand() {
 
 /* Run a command.  Commands are defined in commands.h */
 int runCommand() {
-  int i = 0;
+  int i;
   char *p = argv1;
   char *str;
   int pid_args[4];
   arg1 = atoi(argv1);
   arg2 = atoi(argv2);
-  
+
   switch(cmd) {
   case GET_BAUDRATE:
     Serial.println(BAUDRATE);
@@ -183,6 +191,33 @@ int runCommand() {
   case SERVO_READ:
     Serial.println(servos[arg1].getServo().read());
     break;
+#elif defined(USE_SERVOS2)
+  case CONFIG_SERVO:
+    myServos[arg1].initServo(arg1, arg2);
+    myServoPins[nServos] = arg1;
+    nServos++;
+    Serial.println("OK");
+    break;
+  case SERVO_WRITE:
+    myServos[arg1].setTargetPosition(arg2);
+    Serial.println("OK");
+    break;
+  case SERVO_READ:
+    Serial.println(myServos[arg1].getCurrentPosition());
+    break;
+  case SERVO_DELAY:
+    myServos[arg1].setServoDelay(arg1, arg2);
+    Serial.println("OK");
+    break;
+  case DETACH_SERVO:
+    myServos[arg1].getServo().detach();
+    Serial.println("OK");
+    break;
+  case ATTACH_SERVO:
+    myServos[arg1].getServo().attach(arg1);
+    Serial.println("OK");
+    break;
+
 #endif
     
 #ifdef USE_BASE
@@ -209,6 +244,7 @@ int runCommand() {
     Serial.println("OK"); 
     break;
   case UPDATE_PID:
+    i = 0;
     while ((str = strtok_r(p, ":", &p)) != '\0') {
        pid_args[i] = atoi(str);
        i++;
@@ -334,6 +370,13 @@ void loop() {
     for (i = 0; i < N_SERVOS; i++) {
       servos[i].doSweep();
     }
-    #endif
+    
+  #elif defined(USE_SERVOS2)
+    int i, pin;
+    for (i = 0; i < nServos; i++) {
+      pin = myServoPins[i];
+      myServos[pin].moveServo();
+    }
+  #endif
 }
 

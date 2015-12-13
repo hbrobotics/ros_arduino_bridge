@@ -12,13 +12,17 @@ add_message_files(FILES
                  )
 
 add_service_files(FILES
-                  DigitalSetDirection.srv
-                  DigitalWrite.srv
-                  DigitalRead.srv
-                  ServoRead.srv
-                  ServoWrite.srv
                   AnalogWrite.srv
                   AnalogRead.srv
+                  DigitalRead.srv
+                  DigitalSetDirection.srv
+                  DigitalWrite.srv
+                  Enable.srv
+                  Relax.srv
+                  ServoRead.srv
+                  ServoWrite.srv
+                  SetSpeed.srv
+                  SetServoSpeed.srv
                  )
 
 generate_messages(   

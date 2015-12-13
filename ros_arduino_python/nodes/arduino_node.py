@@ -24,9 +24,12 @@ from ros_arduino_python.arduino_driver import Arduino
 from ros_arduino_python.arduino_sensors import *
 from ros_arduino_msgs.srv import *
 from ros_arduino_python.base_controller import BaseController
+from ros_arduino_python.servo_controller import Servo, ServoController
+from ros_arduino_python.joint_state_publisher import JointStatePublisher
 from geometry_msgs.msg import Twist
 import os, time
 import thread
+from math import radians
 
 class ArduinoROS():
     def __init__(self):
@@ -86,11 +89,11 @@ class ArduinoROS():
         # A service to read the value of an analog sensor
         rospy.Service('~analog_read', AnalogRead, self.AnalogReadHandler)
 
-        # Initialize the controlller
-        self.controller = Arduino(self.port, self.baud, self.timeout)
+        # Initialize the device
+        self.device = Arduino(self.port, self.baud, self.timeout)
         
         # Make the connection
-        self.controller.connect()
+        self.device.connect()
         
         rospy.loginfo("Connected to Arduino on port " + self.port + " at " + str(self.baud) + " baud")
      
@@ -100,8 +103,10 @@ class ArduinoROS():
         # Initialize any sensors
         self.mySensors = list()
         
+        # Read in the sensors parameter dictionary
         sensor_params = rospy.get_param("~sensors", dict({}))
         
+        # Initialize individual sensors appropriately
         for name, params in sensor_params.iteritems():
             # Set the direction to input if not specified
             try:
@@ -110,19 +115,19 @@ class ArduinoROS():
                 params['direction'] = 'input'
                 
             if params['type'] == "Ping":
-                sensor = Ping(self.controller, name, params['pin'], params['rate'], self.base_frame)
+                sensor = Ping(self.device, name, params['pin'], params['rate'], self.base_frame)
             elif params['type'] == "GP2D12":
-                sensor = GP2D12(self.controller, name, params['pin'], params['rate'], self.base_frame)
+                sensor = GP2D12(self.device, name, params['pin'], params['rate'], self.base_frame)
             elif params['type'] == 'Digital':
-                sensor = DigitalSensor(self.controller, name, params['pin'], params['rate'], self.base_frame, direction=params['direction'])
+                sensor = DigitalSensor(self.device, name, params['pin'], params['rate'], self.base_frame, direction=params['direction'])
             elif params['type'] == 'Analog':
-                sensor = AnalogSensor(self.controller, name, params['pin'], params['rate'], self.base_frame, direction=params['direction'])
+                sensor = AnalogSensor(self.device, name, params['pin'], params['rate'], self.base_frame, direction=params['direction'])
             elif params['type'] == 'PololuMotorCurrent':
-                sensor = PololuMotorCurrent(self.controller, name, params['pin'], params['rate'], self.base_frame)
+                sensor = PololuMotorCurrent(self.device, name, params['pin'], params['rate'], self.base_frame)
             elif params['type'] == 'PhidgetsVoltage':
-                sensor = PhidgetsVoltage(self.controller, name, params['pin'], params['rate'], self.base_frame)
+                sensor = PhidgetsVoltage(self.device, name, params['pin'], params['rate'], self.base_frame)
             elif params['type'] == 'PhidgetsCurrent':
-                sensor = PhidgetsCurrent(self.controller, name, params['pin'], params['rate'], self.base_frame)
+                sensor = PhidgetsCurrent(self.device, name, params['pin'], params['rate'], self.base_frame)
                 
 #                if params['type'] == "MaxEZ1":
 #                    self.sensors[len(self.sensors)]['trigger_pin'] = params['trigger_pin']
@@ -130,12 +135,37 @@ class ArduinoROS():
 
             self.mySensors.append(sensor)
             rospy.loginfo(name + " " + str(params) + " published on topic " + rospy.get_name() + "/sensor/" + name)
+            
+        # Initialize any joints (servos)
+        self.joints = dict()
+        
+        # Read in the joints (if any)    
+        joint_params = rospy.get_param("~joints", dict())
+        
+        if len(joint_params) != 0:
+            self.have_joints = True
+            
+            # Configure each servo
+            for name, params in joint_params.iteritems():
+                self.joints[name] = Servo(self.device, name)
+
+                # Display the joint setup on the terminal
+                rospy.loginfo(name + " " + str(params))
+            
+            # The servo controller determines when to read and write position values to the servos
+            self.servo_controller = ServoController(self.device, self.joints, "ServoController")
+            
+            # The joint state publisher publishes the latest joint values on the /joint_states topic
+            self.joint_state_publisher = JointStatePublisher()
+            
+        else:
+            self.have_joints = False
               
         # Initialize the base controller if used
         if self.use_base_controller:
-            self.myBaseController = BaseController(self.controller, self.base_frame)
+            self.myBaseController = BaseController(self.device, self.base_frame)
     
-        # Start polling the sensors and base controller
+        # Start polling the sensors, base controller, and servo controller
         while not rospy.is_shutdown():
             for sensor in self.mySensors:
                 mutex.acquire()
@@ -145,6 +175,12 @@ class ArduinoROS():
             if self.use_base_controller:
                 mutex.acquire()
                 self.myBaseController.poll()
+                mutex.release()
+                
+            if self.have_joints:
+                mutex.acquire()
+                self.servo_controller.poll()
+                self.joint_state_publisher.poll(self.joints.values())
                 mutex.release()
             
             # Publish all sensor values on a single topic for convenience
@@ -168,42 +204,59 @@ class ArduinoROS():
     
     # Service callback functions
     def ServoWriteHandler(self, req):
-        self.controller.servo_write(req.id, req.value)
+        self.device.servo_write(req.id, req.value)
         return ServoWriteResponse()
     
+    def SetServoSpeedWriteHandler(self, req):
+        index = self.joint.values['pin'].index(req.pin)
+        name = self.joints.keys[index]
+        
+        # Convert servo speed in deg/s to a step delay in milliseconds
+        step_delay = self.joints[name].get_step_delay(req.value)
+
+        # Update the servo speed
+        self.device.config_servo(pin, step_delay)
+        
+        return SetServoSpeedResponse()
+    
     def ServoReadHandler(self, req):
-        pos = self.controller.servo_read(req.id)
+        pos = self.device.servo_read(req.id)
         return ServoReadResponse(pos)
     
     def DigitalSetDirectionHandler(self, req):
-        self.controller.pin_mode(req.pin, req.direction)
+        self.device.pin_mode(req.pin, req.direction)
         return DigitalSetDirectionResponse()
     
     def DigitalWriteHandler(self, req):
-        self.controller.digital_write(req.pin, req.value)
+        self.device.digital_write(req.pin, req.value)
         return DigitalWriteResponse()
     
     def DigitalReadHandler(self, req):
-        value = self.controller.digital_read(req.pin)
+        value = self.device.digital_read(req.pin)
         return DigitalReadResponse(value)
               
     def AnalogWriteHandler(self, req):
-        self.controller.analog_write(req.pin, req.value)
+        self.device.analog_write(req.pin, req.value)
         return AnalogWriteResponse()
     
     def AnalogReadHandler(self, req):
-        value = self.controller.analog_read(req.pin)
+        value = self.device.analog_read(req.pin)
         return AnalogReadResponse(value)
- 
+        
     def shutdown(self):
-        # Stop the robot
-        try:
-            rospy.loginfo("Stopping the robot...")
-            self.cmd_vel_pub.Publish(Twist())
-            rospy.sleep(2)
-        except:
-            pass
         rospy.loginfo("Shutting down Arduino Node...")
+
+        # Stop the robot
+        rospy.loginfo("Stopping the robot...")
+        self.cmd_vel_pub.publish(Twist())
+        rospy.sleep(2)
+
+        # Detach any servos
+        if self.have_joints:
+            rospy.loginfo("Detaching servos...")
+            for joint in self.joints.values():
+                self.device.detach_servo(joint.pin)
+                rospy.sleep(0.1)
         
 if __name__ == '__main__':
     myArduino = ArduinoROS()
