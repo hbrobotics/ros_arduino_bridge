@@ -1,0 +1,31 @@
+# A UDEV rule maps the Arduino serial number to /dev/arduino
+
+port: /dev/arduino
+baud: 57600
+timeout: 0.1
+
+rate: 50
+sensorstate_rate: 10
+
+use_base_controller: False
+
+joint_update_rate: 10
+
+# === Sensor definitions.  Examples only - edit for your robot.
+#     Sensor type can be one of the follow (case sensitive!):
+#	  * Analog
+#     * Digital
+#     * Ping
+#	  * GP2D12
+#	  * PololuMotorCurrent
+#	  * PhidgetsVoltage
+#	  * PhidgetsCurrent (20 Amp, DC)
+
+sensors: {
+  onboard_led: {pin: 13, type: Digital, direction: output, rate: 1}
+}
+
+# Joint name and pin assignment is an example only
+joints: {
+    head_pan_joint: {pin: 3, init_position: 30, init_speed: 90, neutral: 90, min_angle: -90, max_angle: 90, invert: False, continous: False}
+}
