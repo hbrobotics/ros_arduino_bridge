@@ -1,3 +1,23 @@
+Table of Contents
+=================
+
+    * [Overview](#overview)
+    * [Official ROS Documentation](#official-ros-documentation)
+    * [System Requirements](#system-requirements)
+    * [Preparing your Serial Port under Linux](#preparing-your-serial-port-under-linux)
+    * [Installation of the ros_arduino_bridge Stack](#installation-of-the-ros_arduino_bridge-stack)
+    * [Loading the ROSArduinoBridge Sketch](#loading-the-rosarduinobridge-sketch)
+    * [Firmware Commands](#firmware-commands)
+    * [Testing your Wiring Connections](#testing-your-wiring-connections)
+    * [Configuring the ros_arduino_python Node](#configuring-the-ros_arduino_python-node)
+    * [Launching the ros_arduino_python Node](#launching-the-ros_arduino_python-node)
+    * [Viewing Sensor Data](#viewing-sensor-data)
+    * [Sending Twist Commands and Viewing Odometry Data](#sending-twist-commands-and-viewing-odometry-data)
+    * [ROS Services for Sensors and Servos](#ros-services-for-sensors-and-servos)
+    * [ROS Joint Topics and Services](#ros-joint-topics-and-services)
+    * [Using the on-board wheel encoder counters (Arduino Uno only)](#using-the-on-board-wheel-encoder-counters-arduino-uno-only)
+    * [NOTES](#notes)
+
 Overview
 --------
 This branch (indigo-devel) is intended for ROS Indigo and above, and uses the Catkin buildsystem. It may also be compatible with ROS Hydro.
