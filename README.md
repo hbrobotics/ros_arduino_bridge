@@ -129,9 +129,9 @@ To install the ROSArduinoBridge library, follow these steps:
 
 where SKETCHBOOK_PATH is the path to your Arduino sketchbook directory.
 
-    $ cp -rp `rospack find ros_arduino_firmware`/src/libraries/ROSArduinoBridge ROSArduinoBridge
+    $ \cp -rp  `rospack find ros_arduino_firmware`/src/libraries/ROSArduinoBridge -T ROSArduinoBridge
 
-This last command copies the ROSArduinoBridge sketch files into your sketchbook folder.  The next section describes how to configure, compile and upload this sketch.
+This last command copies the ROSArduinoBridge sketch files into your sketchbook folder and overwrites any existing files with the same name.  The next section describes how to configure, compile and upload this sketch.
 
 
 Loading the ROSArduinoBridge Sketch
@@ -139,35 +139,39 @@ Loading the ROSArduinoBridge Sketch
 
 * If you are using the base controller, make sure you have already installed the appropriate motor controller and encoder libraries into your Arduino sketchbook/librariesfolder.
 
-* Launch the Arduino 1.0 IDE and load the ROSArduinoBridge sketch.
+* Launch the Arduino IDE and load the ROSArduinoBridge sketch.
   You should be able to find it by going to:
 
     File->Sketchbook->ROSArduinoBridge
   
-NOTE: If you don't have the required base controller hardware but
-still want to try the code, see the notes at the end of the file.
-
-Choose one of the supported motor controllers by uncommenting its #define statement and commenting out any others.  By default, the Pololu VNH5019 driver is chosen.
-
-Choose a supported encoder library by by uncommenting its #define statement and commenting out any others.  At the moment, only the Robogaia Mega Encoder shield is supported and it is chosen by default.
-
-If you want to control PWM servos attached to your controller, change
-the two lines that look like this:
+**NOTE:** If you have the required hardware to use the base controller, uncomment the line that looks like this:
 
 <pre>
-//#define USE_SERVOS
-#undef USE_SERVOS
+//#define USE_BASE
 </pre>
 
-to this:
+so it looks like this:
 
 <pre>
-#define USE_SERVOS
-//#undef USE_SERVOS
+#define USE_BASE
 </pre>
 
-You must then edit the include file servos.h and change the N_SERVOS
-parameter as well as the pin numbers for the servos you have attached.
+You will also need to choose one of the supported motor controllers by uncommenting its #define statement and commenting out any others.  By default, the Pololu VNH5019 driver is chosen.
+
+Choose a supported encoder library by by uncommenting its #define statement and commenting out any others.  At the moment, the two options are the Robogaia Mega Encoder shield (chosen by default) and the directo connection ARDUINO_ENC_COUNTER option that works for Arduino Uno compatible boards.
+
+By default, the sketch will provide support to control PWM servos attached to your Arduino.  If you do not need servo support, you can comment out the line that looks like this:
+
+<pre>
+#define USE_SERVOS2
+</pre>
+
+so that it looks like this:
+
+<pre>
+//#define USE_SERVOS2
+</pre>
+
 
 * Compile and upload the sketch to your Arduino.
 
@@ -185,14 +189,20 @@ The list of commands can be found in the file commands.h.  The current list incl
 #define PIN_MODE       'c'
 #define DIGITAL_READ   'd'
 #define READ_ENCODERS  'e'
+#define CONFIG_SERVO   'j'
 #define MOTOR_SPEEDS   'm'
 #define PING           'p'
 #define RESET_ENCODERS 'r'
 #define SERVO_WRITE    's'
 #define SERVO_READ     't'
 #define UPDATE_PID     'u'
+#define SERVO_DELAY    'v'
 #define DIGITAL_WRITE  'w'
 #define ANALOG_WRITE   'x'
+#define ATTACH_SERVO   'y'
+#define DETACH_SERVO   'z'
+#define LEFT            0
+#define RIGHT           1
 </pre>
 
 For example, to get the analog reading on pin 3, use the command:
@@ -210,6 +220,18 @@ e
 To move the robot forward at 20 encoder ticks per second:
 
 m 20 20
+
+To intialize a PWM servo on pin 3 with speed delay 100ms:
+
+j 3 100
+
+To move the servo on pin 3 to position 120 degrees:
+
+s 3 120
+
+To detach servo on pin 3:
+
+z 3
 
 
 Testing your Wiring Connections
@@ -278,8 +300,16 @@ sensors: {
   #motor_current_right:  {pin: 1, type: PololuMotorCurrent, rate: 5},
   #ir_front_center:      {pin: 2, type: GP2D12, rate: 10},
   #sonar_front_center:   {pin: 5, type: Ping, rate: 10},
-  arduino_led:          {pin: 13, type: Digital, rate: 5, direction: output}
+  onboard_led:           {pin: 13, type: Digital, rate: 5, direction: output}
 }
+
+# Joint name and configuration is an example only
+joints: {
+    head_pan_joint: {pin: 3, init_position: 0, init_speed: 90, neutral: 90, min_angle: -90, max_angle: 90, invert: False, continous: False},
+    head_tilt_joint: {pin: 5, init_position: 0, init_speed: 90, neutral: 90, min_angle: -90, max_angle: 90, invert: False, continous: False}
+}
+
+
 </pre>
 
 **NOTE**: Do not use tabs in your .yaml file or the parser will barf it back out when it tries to load it.   Always use spaces instead.  **ALSO**: When defining your sensor parameters, the last sensor in the list does **not** get a comma (,) at the end of the line but all the rest **must** have a comma.
@@ -323,6 +353,12 @@ of those listed (case sensitive!).  The default *direction* is input so
 to define an output pin, set the direction explicitly to output.  In
 the example above, the Arduino LED (pin 13) will be turned on and off
 at a rate of 2 times per second.
+
+_Defining Servo Configurations_
+
+The *joints* parameter defines a dictionary of joint names and servo parameters.  (You can name each joint whatever you like but rememember that joint names will become part of the servo's ROS topic and service names.)
+
+The most important parameter is *pin* which of course must match the pin the servo attaches to on your Arduino.  Most PWM servos operate from 0 to 180 degrees with a "neutral" point of 90 degrees. ROS uses radians instead of degrees for joint positions but it is usually easier for programmers to specify the angular limits in the config file using degrees.  The ROS Arduino Bridge pacakge takes care of the conversion to radians.  An *init_position* of 0 therefore means 0 degrees relative to the neutral point of 90 degrees.  A *max_angle* of 90 degrees maps into 180 degrees at the servo. 
 
 _Setting Drivetrain and PID Parameters_
 
@@ -413,9 +449,9 @@ or
 
    $ rxplot -p 60 /odom/pose/pose/position/x:y, /odom/twist/twist/linear/x, /odom/twist/twist/angular/z
 
-ROS Services
-------------
-The ros\_arduino\_python package also defines a few ROS services as follows:
+ROS Services for Sensors and Servos
+-----------------------------------
+The ros\_arduino\_python package also defines a few ROS services for sensors and servos as follows:
 
 **digital\_set\_direction** - set the direction of a digital pin
 
@@ -440,6 +476,35 @@ where id is the index of the servo as defined in the Arduino sketch (servos.h) a
     $ rosservice call /arduino/servo_read id
 
 where id is the index of the servo as defined in the Arduino sketch (servos.h)
+
+ROS Joint Topics and Services
+-----------------------------
+At the ROS level, a servo is called a joint and each joint has its own topics and services.  For example, a joint called head_pan_joint in the YAML config file can be controlled using the topic:
+
+/head_pan_joint/command
+
+which takes a Float64 argument specifying the desired position in radians.  For example, the command:
+
+    $ rostopic pub -1 /head_pan_joint/command std_msgs/Float64 -- 1.0
+
+will move the servo to angle 1.0 radians from the neutral point; i.e. about 147 degrees when using the default neutral point of 90 degrees.  Using a negative value moves the servo in the other direction:
+
+    $ rostopic pub -1 /head_pan_joint/command std_msgs/Float64 -- -1.0
+
+A number of services are also available for each joint:
+
+**/<joint_name>/enable** - Enable or disable a joint.  Disabling also detachs the underlying servo so that it can be moved by hand.
+
+    $ rosservice call /head_pan_joint/enable false
+
+**/<joint_name>/relax** - Another way to detach the underlying servo so that it can be moved by hand.
+
+    $ rosservice call /head_pan_joint/relax
+
+**/<joint_name>/set_speed** - Set the movement speed of servo in radians per second.
+
+    $ rosservice call /head_pan_joint/set_speed 1.0
+
 
 Using the on-board wheel encoder counters (Arduino Uno only)
 ------------------------------------------------------------
@@ -473,21 +538,21 @@ follow the instructions below so that you can still use your
 Arduino-compatible controller to read sensors and control PWM servos.
 
 First, you need to edit the ROSArduinoBridge sketch. At the top of
-the file, change the two lines that look like this:
+the file, comment out the line that looks like this:
 
 <pre>
 #define USE_BASE
-//#undef USE_BASE
 </pre>
 
-to this:
+so it looks like this:
 
 <pre>
 //#define USE_BASE
-#undef USE_BASE
 </pre>
 
-**NOTE:** You also need to comment out the line that looks like this in the file encoder_driver.ino:
+(You may find that it is already commented out.)
+
+**NOTE:** If you are using a version of the Arduino IDE earlier than 1.6.6, then you also need to comment out the line that looks like this in the file encoder_driver.ino:
 
     #include "MegaEncoderCounter.h"
 
