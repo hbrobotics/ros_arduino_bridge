@@ -25,15 +25,18 @@ from ros_arduino_python.arduino_sensors import *
 from ros_arduino_msgs.srv import *
 from ros_arduino_python.base_controller import BaseController
 from ros_arduino_python.servo_controller import Servo, ServoController
+from ros_arduino_python.follow_controller import FollowController
 from ros_arduino_python.joint_state_publisher import JointStatePublisher
 from geometry_msgs.msg import Twist
 import os, time
 import thread
 from math import radians
 
+controller_types = { "follow_controller" : FollowController }
+
 class ArduinoROS():
     def __init__(self):
-        rospy.init_node('Arduino', log_level=rospy.DEBUG)
+        rospy.init_node('Arduino', log_level=rospy.INFO)
                 
         # Cleanup when termniating the node
         rospy.on_shutdown(self.shutdown)
@@ -137,7 +140,7 @@ class ArduinoROS():
             rospy.loginfo(name + " " + str(params) + " published on topic " + rospy.get_name() + "/sensor/" + name)
             
         # Initialize any joints (servos)
-        self.joints = dict()
+        self.device.joints = dict()
         
         # Read in the joints (if any)    
         joint_params = rospy.get_param("~joints", dict())
@@ -147,23 +150,42 @@ class ArduinoROS():
             
             # Configure each servo
             for name, params in joint_params.iteritems():
-                self.joints[name] = Servo(self.device, name)
+                self.device.joints[name] = Servo(self.device, name)
 
                 # Display the joint setup on the terminal
                 rospy.loginfo(name + " " + str(params))
             
             # The servo controller determines when to read and write position values to the servos
-            self.servo_controller = ServoController(self.device, self.joints, "ServoController")
+            self.servo_controller = ServoController(self.device, "ServoController")
             
             # The joint state publisher publishes the latest joint values on the /joint_states topic
             self.joint_state_publisher = JointStatePublisher()
             
+#             # Initialize any trajectory action follow controllers
+#             controllers = rospy.get_param("~controllers", dict())
+#              
+#             self.device.controllers = list()
+#              
+#             for name, params in controllers.items():
+#                 try:
+#                     controller = controller_types[params["type"]](self.device, name)
+#                     self.device.controllers.append(controller)
+#                 except Exception as e:
+#                     if type(e) == KeyError:
+#                         rospy.logerr("Unrecognized controller: " + params["type"])
+#                     else:  
+#                         rospy.logerr(str(type(e)) + str(e))
+#      
+#             for controller in self.device.controllers:
+#                 controller.startup()
         else:
             self.have_joints = False
-              
+        
         # Initialize the base controller if used
         if self.use_base_controller:
             self.myBaseController = BaseController(self.device, self.base_frame)
+            
+        print "==> ROS Arduino Bridge ready for action!"
     
         # Start polling the sensors, base controller, and servo controller
         while not rospy.is_shutdown():
@@ -180,7 +202,7 @@ class ArduinoROS():
             if self.have_joints:
                 mutex.acquire()
                 self.servo_controller.poll()
-                self.joint_state_publisher.poll(self.joints.values())
+                self.joint_state_publisher.poll(self.device.joints.values())
                 mutex.release()
             
             # Publish all sensor values on a single topic for convenience
@@ -209,10 +231,10 @@ class ArduinoROS():
     
     def SetServoSpeedWriteHandler(self, req):
         index = self.joint.values['pin'].index(req.pin)
-        name = self.joints.keys[index]
+        name = self.device.joints.keys[index]
         
         # Convert servo speed in deg/s to a step delay in milliseconds
-        step_delay = self.joints[name].get_step_delay(req.value)
+        step_delay = self.device.joints[name].get_step_delay(req.value)
 
         # Update the servo speed
         self.device.config_servo(pin, step_delay)
@@ -254,7 +276,7 @@ class ArduinoROS():
         # Detach any servos
         if self.have_joints:
             rospy.loginfo("Detaching servos...")
-            for joint in self.joints.values():
+            for joint in self.device.joints.values():
                 self.device.detach_servo(joint.pin)
                 rospy.sleep(0.1)
         

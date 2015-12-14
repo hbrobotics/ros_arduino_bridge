@@ -23,6 +23,7 @@
 import rospy
 from std_msgs.msg import Float64
 from ros_arduino_msgs.srv import Relax, Enable, SetSpeed, SetSpeedResponse, RelaxResponse, EnableResponse
+from controllers import *
 
 from math import radians, degrees
 
@@ -30,6 +31,7 @@ class Joint:
     def __init__(self, device, name):
         self.device = device
         self.name = name
+        self.controller = None
 
         self.target_position = 0.0 # radians
         self.position = 0.0        # radians
@@ -50,11 +52,12 @@ class Servo(Joint):
         # A value of 0.24 seconds per 60 degrees is typical.
         self.rated_speed = rospy.get_param(n + "rated_speed", 0.24) # seconds per 60 degrees
         
-        self.max_deg_per_sec = 60.0 / self.rated_speed
-        self.ms_per_deg = 1000.0 / self.max_deg_per_sec
+        # Conversion factors to compute servo speed to step delay between updates
+        self.max_rad_per_sec = radians(60.0) / self.rated_speed
+        self.ms_per_rad = 1000.0 / self.max_rad_per_sec 
         
         # Convert initial servo speed in deg/s to a step delay in milliseconds
-        step_delay = self.get_step_delay(rospy.get_param(n + "init_speed", 90.0))
+        step_delay = self.get_step_delay(radians(rospy.get_param(n + "init_speed", 90.0)))
 
         # Update the servo speed
         self.device.config_servo(self.pin, step_delay)
@@ -70,7 +73,7 @@ class Servo(Joint):
         self.invert = rospy.get_param(n + "invert", False)
         
         # Where to we want the servo positioned
-        self.desired = self.neutral - radians(rospy.get_param(n + "init_position", 0))
+        self.desired = self.neutral + radians(rospy.get_param(n + "init_position", 0))
         
         # Where is the servo positioned now
         self.position = 0.0
@@ -100,22 +103,22 @@ class Servo(Joint):
         # Set the target position for the next servo controller update
         self.desired = target_adjusted
         
-    def get_step_delay(self, target_speed=90):
+    def get_step_delay(self, target_speed=1.0):
         # Don't allow negative speeds
         target_speed = abs(target_speed)
         
-        if target_speed > self.max_deg_per_sec:
+        if target_speed > self.max_rad_per_sec:
             rospy.logdebug("Target speed exceeds max servo speed. Using max.")
             step_delay = 0
         else:
             # Catch division by zero and set to slowest speed possible
             try:
-                step_delay = self.ms_per_deg * (self.max_deg_per_sec / target_speed - 1)
+                step_delay = 1000.0 / degrees(1.0) * (1.0 / target_speed - 1.0 / self.max_rad_per_sec)
             except:
                 step_delay = 32767
             
-        # Minimum step delay is 1 millisecond
-        step_delay = max(1, step_delay)
+        # Minimum step delay is 0 millisecond
+        step_delay = max(0, step_delay)
         
         return int(step_delay)
     
@@ -139,7 +142,7 @@ class Servo(Joint):
         return EnableResponse()
     
     def set_speed_cb(self, req):
-        # Convert servo speed in deg/s to a step delay in milliseconds
+        # Convert servo speed in rad/s to a step delay in milliseconds
         step_delay = self.get_step_delay(req.value)
 
         # Update the servo speed
@@ -147,15 +150,16 @@ class Servo(Joint):
         
         return SetSpeedResponse()
 
-class ServoController():
-    def __init__(self, device, joints, name):
-        self.device = device
+class ServoController(Controller):
+    def __init__(self, device, name):
+        Controller.__init__(self, device, name)
+
         self.servos = list()
         
         joint_update_rate = rospy.get_param("~joint_update_rate", 10.0)
 
         # Get the servo objects from the joint list
-        for servo in joints.values():
+        for servo in self.device.joints.values():
             self.servos.append(servo)
             servo.position_last = servo.get_current_position()
 
