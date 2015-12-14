@@ -479,9 +479,14 @@ where id is the index of the servo as defined in the Arduino sketch (servos.h)
 
 ROS Joint Topics and Services
 -----------------------------
-At the ROS level, a servo is called a joint and each joint has its own topics and services.  For example, a joint called head_pan_joint in the YAML config file can be controlled using the topic:
+At the ROS level, a servo is called a joint and each joint has its own topics and services.  To change the position of a joint, publish the position
+in radians to the topic:
 
-/head_pan_joint/command
+**/\<joint_name\>/command**
+
+For example, a joint called head_pan_joint in the YAML config file can be controlled using the topic:
+
+**/head_pan_joint/command**
 
 which takes a Float64 argument specifying the desired position in radians.  For example, the command:
 
@@ -493,15 +498,15 @@ will move the servo to angle 1.0 radians from the neutral point; i.e. about 147 
 
 A number of services are also available for each joint:
 
-**/<joint_name>/enable** - Enable or disable a joint.  Disabling also detachs the underlying servo so that it can be moved by hand.
+**/\<joint_name\>/enable** - Enable or disable a joint.  Disabling also detachs the underlying servo so that it can be moved by hand.
 
     $ rosservice call /head_pan_joint/enable false
 
-**/<joint_name>/relax** - Another way to detach the underlying servo so that it can be moved by hand.
+**/\<joint_name\>/relax** - Another way to detach the underlying servo so that it can be moved by hand.
 
     $ rosservice call /head_pan_joint/relax
 
-**/<joint_name>/set_speed** - Set the movement speed of servo in radians per second.
+**/\<joint_name\>/set_speed** - Set the movement speed of servo in radians per second.
 
     $ rosservice call /head_pan_joint/set_speed 1.0
 
