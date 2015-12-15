@@ -266,12 +266,13 @@ class ArduinoROS():
         return AnalogReadResponse(value)
         
     def shutdown(self):
-        rospy.loginfo("Shutting down Arduino Node...")
+        rospy.loginfo("Shutting down Arduino node...")
 
         # Stop the robot
-        rospy.loginfo("Stopping the robot...")
-        self.cmd_vel_pub.publish(Twist())
-        rospy.sleep(2)
+        if self.use_base_controller:
+            rospy.loginfo("Stopping the robot...")
+            self.cmd_vel_pub.publish(Twist())
+            rospy.sleep(2)
 
         # Detach any servos
         if self.have_joints:
