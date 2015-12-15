@@ -56,6 +56,9 @@ class ArduinoROS():
         
         self.use_base_controller = rospy.get_param("~use_base_controller", False)
         
+        # Assume we don't have any joints by default
+        self.have_joints = False
+        
         # Set up the time for publishing the next SensorState message
         now = rospy.Time.now()
         self.t_delta_sensors = rospy.Duration(1.0 / self.sensorstate_rate)
@@ -178,9 +181,7 @@ class ArduinoROS():
 #      
 #             for controller in self.device.controllers:
 #                 controller.startup()
-        else:
-            self.have_joints = False
-        
+
         # Initialize the base controller if used
         if self.use_base_controller:
             self.myBaseController = BaseController(self.device, self.base_frame)
@@ -279,7 +280,7 @@ class ArduinoROS():
             rospy.loginfo("Detaching servos...")
             for joint in self.device.joints.values():
                 self.device.detach_servo(joint.pin)
-                rospy.sleep(0.1)
+                rospy.sleep(0.2)
         
 if __name__ == '__main__':
     myArduino = ArduinoROS()
