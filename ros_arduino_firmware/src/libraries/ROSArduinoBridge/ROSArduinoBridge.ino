@@ -194,8 +194,10 @@ int runCommand() {
 #elif defined(USE_SERVOS2)
   case CONFIG_SERVO:
     myServos[arg1].initServo(arg1, arg2);
-    myServoPins[nServos] = arg1;
-    nServos++;
+    if (!haveServo(arg1)) {
+      myServoPins[nServos] = arg1;
+      nServos++;
+    }
     Serial.println("OK");
     break;
   case SERVO_WRITE:

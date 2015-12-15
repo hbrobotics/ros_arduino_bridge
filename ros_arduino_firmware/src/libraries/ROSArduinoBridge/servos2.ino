@@ -18,7 +18,7 @@
 // Constructor
 SweepServo2::SweepServo2()
 {
-  this->currentPositionDegrees = 0;
+  this->currentPositionDegrees = 90;
   this->targetPositionDegrees = 90; 
   this->lastSweepCommand = 0;
 }
@@ -29,7 +29,7 @@ void SweepServo2::initServo(
     int stepDelayMs)
 {
   this->stepDelayMs = stepDelayMs;
-  this->currentPositionDegrees = 0;
+  this->currentPositionDegrees = 90;
   this->targetPositionDegrees = 90;
   this->lastSweepCommand = millis();
   this->servo.attach(servoPin);
@@ -74,9 +74,19 @@ void SweepServo2::setTargetPosition(int position)
   this->targetPositionDegrees = position;
 }
 
+// Get the current servo position
 int SweepServo2::getCurrentPosition()
 {
   return this->currentPositionDegrees;
+}
+
+// Check whether we have already configured this servo
+bool haveServo(int pin) {
+  int i;
+  for (i = 0; i < nServos; i++) {
+    if (myServoPins[i] == pin) return true;
+  }
+  return false;
 }
 
 // Accessor for servo object
