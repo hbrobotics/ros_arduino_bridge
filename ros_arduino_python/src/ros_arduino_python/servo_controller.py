@@ -74,7 +74,7 @@ class Servo(Joint):
         
         # Where to we want the servo positioned
         self.desired = self.neutral + radians(rospy.get_param(n + "init_position", 0))
-        
+                
         # Where is the servo positioned now
         self.position = 0.0
         
@@ -124,9 +124,6 @@ class Servo(Joint):
     
     def get_current_position(self):
         return self.device.servo_read(self.pin) - self.neutral
-    
-    def set_target_position(self):
-        return self.device.servo_read(self.pin)
     
     def relax_cb(self, req):
         self.device.detach_servo(self.pin)
