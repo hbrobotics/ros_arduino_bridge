@@ -35,7 +35,7 @@ class SweepServo():
         self.node_name = "sweep_servo"
         
         # Initialize the node
-        rospy.init_node(self.node_name)
+        rospy.init_node(self.node_name, anonymous=True)
                 
         # Set a shutdown function to clean up when termniating the node
         rospy.on_shutdown(self.shutdown)
@@ -44,19 +44,18 @@ class SweepServo():
         joint_name = rospy.get_param('~joint', 'head_pan_joint')
             
         if joint_name == '':
-            rospy.logino("Joint name for servo must be specified in launch file.")
+            rospy.logino("Joint name for servo must be specified in parameter file.")
             os._exit(1)
             
         servo_pin = rospy.get_param('/arduino/joints/' + str(joint_name) + '/pin')
         max_angle = radians(rospy.get_param('/arduino/joints/' + str(joint_name) + '/max_angle'))
         min_angle = radians(rospy.get_param('/arduino/joints/' + str(joint_name) + '/min_angle'))
         
-        # Set the sweep limits to 90% of the max limits
-        target_max = 0.9 * max_angle
-        target_min = 0.9 * min_angle
+        target_max = max_angle
+        target_min = min_angle
                 
         # How fast should we sweep the servo
-        speed = rospy.get_param('~speed', 60) # degrees per second
+        speed = rospy.get_param('~speed', 1.0) # rad/s
         
         # Time between between sweeps
         delay = rospy.get_param('~delay', 2)  # seconds
@@ -93,17 +92,15 @@ class SweepServo():
 
         rospy.loginfo('Sweeping servo...')
         
-        while not rospy.is_shutdown():
-            joint_pub.publish(target_max)
-            
+        while not rospy.is_shutdown():            
             while abs(self.get_joint_position(joint_name) - target_max) > 0.1:
+                joint_pub.publish(target_max)
                 rospy.sleep(0.1)
                 
             rospy.sleep(delay)
             
-            joint_pub.publish(target_min)
-            
-            while abs(self.get_joint_position(joint_name) - target_min) > 0.1:
+            while abs(self.get_joint_position(joint_name) - target_min) > 0.1:  
+                joint_pub.publish(target_min)
                 rospy.sleep(0.1)
             
             rospy.sleep(delay)
@@ -125,4 +122,4 @@ if __name__ == '__main__':
     except: 
         rospy.loginfo('Unexpected error: ' +  str(sys.exc_info()[0]))
         raise
-              
+    

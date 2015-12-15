@@ -1,0 +1,7 @@
+<launch>
+   <arg name="joint" default="head_pan_joint" />
+   
+   <node pkg="ros_arduino_python" name="$(anon sweep_servo)" type="sweep_servo.py" output="screen" clear_params="true">
+      <param name="joint" value="$(arg joint)" />
+   </node>
+</launch>
