@@ -135,7 +135,7 @@ class ArduinoROS():
             elif params['type'].lower() == 'PhidgetsCurrent'.lower():
                 sensor = PhidgetsCurrent(self.device, name, params['pin'], params['rate'], self.base_frame)
                 
-#                if params['type'] == "MaxEZ1":
+#                if params['type'].lower() == 'MaxEZ1'.lower():
 #                    self.sensors[len(self.sensors)]['trigger_pin'] = params['trigger_pin']
 #                    self.sensors[len(self.sensors)]['output_pin'] = params['output_pin']
 
