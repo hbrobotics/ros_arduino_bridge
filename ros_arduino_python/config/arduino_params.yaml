@@ -31,7 +31,7 @@ base_frame: base_link
 #accel_limit: 1.0
 
 # === Sensor definitions.  Examples only - edit for your robot.
-#     Sensor type can be one of the follow (case sensitive!):
+#     Sensor type can be one of the following:
 #	  * Ping
 #	  * GP2D12
 #	  * Analog
@@ -39,7 +39,6 @@ base_frame: base_link
 #	  * PololuMotorCurrent
 #	  * PhidgetsVoltage
 #	  * PhidgetsCurrent (20 Amp, DC)
-
 
 
 sensors: {
