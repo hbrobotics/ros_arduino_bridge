@@ -210,20 +210,21 @@ class GP2D12(IRSensor):
     def read_value(self):
         value = self.controller.analog_read(self.pin)
         
+        # The GP2D12 cannot provide a meaning result closer than 3 cm.
         if value <= 3.0:
-            return self.msg.max_range
+            return float('NaN')
         
         try:
             distance = (6787.0 / (float(value) - 3.0)) - 4.0
         except:
-            return self.msg.max_range
+            return float('NaN')
             
         # Convert to meters
         distance /= 100.0
         
         # If we get a spurious reading, set it to the max_range
-        if distance > self.msg.max_range: distance = self.msg.max_range
-        if distance < self.msg.min_range: distance = self.msg.max_range
+        if distance > self.msg.max_range: distance = float('NaN')
+        if distance < self.msg.min_range: distance = float('NaN')
         
         return distance
     
