@@ -22,6 +22,7 @@
 import rospy
 from sensor_msgs.msg import Range
 from ros_arduino_msgs.msg import *
+from math import pow
 
 LOW = 0
 HIGH = 1
@@ -210,12 +211,14 @@ class GP2D12(IRSensor):
     def read_value(self):
         value = self.controller.analog_read(self.pin)
         
+        
         # The GP2D12 cannot provide a meaning result closer than 3 cm.
         if value <= 3.0:
             return float('NaN')
         
         try:
-            distance = (6787.0 / (float(value) - 3.0)) - 4.0
+            distance = pow(4187.8 / value, 1.106)
+            #distance = (6787.0 / (float(value) - 3.0)) - 4.0
         except:
             return float('NaN')
             
