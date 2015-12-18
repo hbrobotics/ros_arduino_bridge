@@ -119,6 +119,12 @@ class ArduinoROS():
                 params['direction']
             except:
                 params['direction'] = 'input'
+            
+            # Set the frame_id to the base frame if not set   
+            try:
+                params['frame_id']
+            except:
+                params['frame_id'] = self.base_frame
                 
             if params['type'].lower() == 'Ping'.lower():
                 sensor = Ping(self.device, name, params['pin'], params['rate'], params['frame_id'])
