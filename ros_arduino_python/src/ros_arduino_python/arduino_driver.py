@@ -29,9 +29,6 @@ import sys, traceback
 from serial.serialutil import SerialException
 from serial import Serial
 
-SERVO_MAX = 180
-SERVO_MIN = 0
-
 class Arduino:
     ''' Configuration Parameters
     '''    
@@ -318,7 +315,7 @@ class Arduino:
         ''' Usage: servo_write(id, pos)
             Position is given in radians and converted to degrees before sending
         '''
-        return self.execute_ack('s %d %d' %(id, min(SERVO_MAX, max(SERVO_MIN, degrees(pos)))))
+        return self.execute_ack('s %d %d' %(id, degrees(pos)))
     
     def servo_read(self, id):
         ''' Usage: servo_read(id)
