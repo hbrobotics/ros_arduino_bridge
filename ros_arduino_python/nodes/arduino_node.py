@@ -121,13 +121,13 @@ class ArduinoROS():
                 params['direction'] = 'input'
                 
             if params['type'].lower() == 'Ping'.lower():
-                sensor = Ping(self.device, name, params['pin'], params['rate'], self.base_frame)
+                sensor = Ping(self.device, name, params['pin'], params['rate'], params['frame_id'])
             elif params['type'].lower() == 'GP2D12'.lower():
-                sensor = GP2D12(self.device, name, params['pin'], params['rate'], self.base_frame)
+                sensor = GP2D12(self.device, name, params['pin'], params['rate'], params['frame_id'])
             elif params['type'].lower() == 'Digital'.lower():
-                sensor = DigitalSensor(self.device, name, params['pin'], params['rate'], self.base_frame, direction=params['direction'])
+                sensor = DigitalSensor(self.device, name, params['pin'], params['rate'], params['frame_id'], direction=params['direction'])
             elif params['type'].lower() == 'Analog'.lower():
-                sensor = AnalogSensor(self.device, name, params['pin'], params['rate'], self.base_frame, direction=params['direction'])
+                sensor = AnalogSensor(self.device, name, params['pin'], params['rate'], params['frame_id'], direction=params['direction'])
             elif params['type'].lower() == 'PololuMotorCurrent'.lower():
                 sensor = PololuMotorCurrent(self.device, name, params['pin'], params['rate'], self.base_frame)
             elif params['type'].lower() == 'PhidgetsVoltage'.lower():
