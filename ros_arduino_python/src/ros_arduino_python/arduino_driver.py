@@ -27,7 +27,7 @@ import os
 import time
 import sys, traceback
 from serial.serialutil import SerialException
-from serial import Serial
+import serial
 
 class Arduino:
     ''' Configuration Parameters
@@ -59,12 +59,21 @@ class Arduino:
     def connect(self):
         try:
             print "Connecting to Arduino on port", self.port, "..."
-            self.port = Serial(port=self.port, baudrate=self.baudrate, timeout=self.timeout, writeTimeout=self.writeTimeout)
-            # The next line is necessary to give the firmware time to wake up.
-            time.sleep(1)
+            
+            # The port has to be open once with the default baud rate before opening again for real
+            self.serial_port = serial.Serial(port=self.port)
+          
+            # Needed for Leonardo only
+            while not self.port:
+                time.sleep(0.5)
+
+            # Now open the port with the real settings
+            self.serial_port = serial.Serial(port=self.port, baudrate=self.baudrate, timeout=self.timeout, writeTimeout=self.writeTimeout)
+
+            # Test the connection by reading the baudrate
             test = self.get_baud()
             if test != self.baudrate:
-                time.sleep(1)
+                time.sleep(0.5)
                 test = self.get_baud()   
                 if test != self.baudrate:
                     raise SerialException
@@ -82,18 +91,18 @@ class Arduino:
     def open(self): 
         ''' Open the serial port.
         '''
-        self.port.open()
+        self.serial_port.open()
 
     def close(self): 
         ''' Close the serial port.
         '''
-        self.port.close() 
+        self.serial_port.close() 
     
     def send(self, cmd):
         ''' This command should not be used on its own: it is called by the execute commands
             below in a thread safe manner.
         '''
-        self.port.write(cmd + '\r')
+        self.serial_port.write(cmd + '\r')
 
     def recv(self, timeout=0.5):
         timeout = min(timeout, self.timeout)
@@ -105,7 +114,7 @@ class Arduino:
         value = ''
         attempts = 0
         while c != '\r':
-            c = self.port.read(1)
+            c = self.serial_port.read(1)
             value += c
             attempts += 1
             if attempts * self.interCharTimeout > timeout:
@@ -148,7 +157,7 @@ class Arduino:
         self.mutex.acquire()
         
         try:
-            self.port.flushInput()
+            self.serial_port.flushInput()
         except:
             pass
         
@@ -156,12 +165,12 @@ class Arduino:
         attempts = 0
         
         try:
-            self.port.write(cmd + '\r')
+            self.serial_port.write(cmd + '\r')
             value = self.recv(self.timeout)
             while attempts < ntries and (value == '' or value == 'Invalid Command' or value == None):
                 try:
-                    self.port.flushInput()
-                    self.port.write(cmd + '\r')
+                    self.serial_port.flushInput()
+                    self.serial_port.write(cmd + '\r')
                     value = self.recv(self.timeout)
                 except:
                     print "Exception executing command: " + cmd
@@ -180,7 +189,7 @@ class Arduino:
         self.mutex.acquire()
         
         try:
-            self.port.flushInput()
+            self.serial_port.flushInput()
         except:
             pass
         
@@ -188,12 +197,12 @@ class Arduino:
         attempts = 0
         
         try:
-            self.port.write(cmd + '\r')
+            self.serial_port.write(cmd + '\r')
             values = self.recv_array()
             while attempts < ntries and (values == '' or values == 'Invalid Command' or values == [] or values == None):
                 try:
-                    self.port.flushInput()
-                    self.port.write(cmd + '\r')
+                    self.serial_port.flushInput()
+                    self.serial_port.write(cmd + '\r')
                     values = self.recv_array()
                 except:
                     print("Exception executing command: " + cmd)
@@ -218,7 +227,7 @@ class Arduino:
         self.mutex.acquire()
         
         try:
-            self.port.flushInput()
+            self.serial_port.flushInput()
         except:
             pass
         
@@ -226,12 +235,12 @@ class Arduino:
         attempts = 0
         
         try:
-            self.port.write(cmd + '\r')
+            self.serial_port.write(cmd + '\r')
             ack = self.recv(self.timeout)
             while attempts < ntries and (ack == '' or ack == 'Invalid Command' or ack == None):
                 try:
-                    self.port.flushInput()
-                    self.port.write(cmd + '\r')
+                    self.serial_port.flushInput()
+                    self.serial_port.write(cmd + '\r')
                     ack = self.recv(self.timeout)
                 except:
                     print "Exception executing command: " + cmd
