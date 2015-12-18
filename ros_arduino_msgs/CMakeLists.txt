@@ -13,12 +13,20 @@ add_message_files(FILES
 
 add_service_files(FILES
                   AnalogWrite.srv
+                  AnalogSensorWrite.srv
+                  AnalogFloatSensorWrite.srv              
                   AnalogRead.srv
+                  AnalogSensorRead.srv
+                  AnalogFloatSensorRead.srv
                   DigitalRead.srv
+                  DigitalSensorRead.srv
                   DigitalSetDirection.srv
+                  DigitalSensorSetDirection.srv
                   DigitalWrite.srv
+                  DigitalSensorWrite.srv
                   Enable.srv
                   Relax.srv
+                  AnalogSensorRead.srv
                   ServoRead.srv
                   ServoWrite.srv
                   SetSpeed.srv

@@ -22,6 +22,7 @@
 import rospy
 from sensor_msgs.msg import Range
 from ros_arduino_msgs.msg import *
+from ros_arduino_msgs.srv import *
 from math import pow
 
 LOW = 0
@@ -29,7 +30,7 @@ HIGH = 1
 
 INPUT = 0
 OUTPUT = 1
-    
+
 class MessageType:
     ANALOG = 0
     DIGITAL = 1
@@ -39,19 +40,21 @@ class MessageType:
     BOOL = 5
     
 class Sensor(object):
-    def __init__(self, controller, name, pin, rate, frame_id, direction="input", **kwargs):
-        self.controller = controller
+    def __init__(self, device, name, pin=None, type=None, rate=0, direction="input", frame_id="base_link", **kwargs):
+        self.device = device
         self.name = name
         self.pin = pin
+        self.type = type
         self.rate = rate
         self.direction = direction
-
         self.frame_id = frame_id
+
         self.value = None
         
-        self.t_delta = rospy.Duration(1.0 / self.rate)
-        self.t_next = rospy.Time.now() + self.t_delta
-    
+        if self.rate != 0:
+            self.t_delta = rospy.Duration(1.0 / self.rate)
+            self.t_next = rospy.Time.now() + self.t_delta
+                
     def poll(self):
         now = rospy.Time.now()
         if now > self.t_next:
@@ -87,20 +90,33 @@ class AnalogSensor(Sensor):
         self.msg = Analog()
         self.msg.header.frame_id = self.frame_id
         
+        # Create the publisher
         self.pub = rospy.Publisher("~sensor/" + self.name, Analog, queue_size=5)
         
         if self.direction == "output":
-            self.controller.pin_mode(self.pin, OUTPUT)
+            self.device.pin_mode(self.pin, OUTPUT)
+            # Create the write service
+            rospy.Service('~' + self.name + '/write', AnalogSensorWrite, self.sensor_write_handler)
         else:
-            self.controller.pin_mode(self.pin, INPUT)
+            self.device.pin_mode(self.pin, INPUT)
+            # Create the read service
+            rospy.Service('~' + self.name + '/read', AnalogSensorRead, self.sensor_read_handler)
 
         self.value = LOW
         
     def read_value(self):
-        return self.controller.analog_read(self.pin)
+        return self.device.analog_read(self.pin)
     
     def write_value(self, value):
-        return self.controller.analog_write(self.pin, value)
+        return self.device.analog_write(self.pin, value)
+            
+    def sensor_read_handler(self, req=None):
+        value = self.read_value()
+        return AnalogSensorReadResponse(value)
+    
+    def sensor_write_handler(self, req):
+        self.write_value(req.value)
+        return AnalogSensorWriteResponse()
     
 class AnalogFloatSensor(Sensor):
     def __init__(self, *args, **kwargs):
@@ -111,20 +127,33 @@ class AnalogFloatSensor(Sensor):
         self.msg = AnalogFloat()
         self.msg.header.frame_id = self.frame_id
         
+        # Create the publisher
         self.pub = rospy.Publisher("~sensor/" + self.name, AnalogFloat, queue_size=5)
         
         if self.direction == "output":
-            self.controller.pin_mode(self.pin, OUTPUT)
+            self.device.pin_mode(self.pin, OUTPUT)
+            # Create the write service
+            rospy.Service('~' + self.name + '/write', AnalogFloatSensorWrite, self.sensor_write_handler)
         else:
-            self.controller.pin_mode(self.pin, INPUT)
+            self.device.pin_mode(self.pin, INPUT)
+            # Create the read service
+            rospy.Service('~' + self.name + '/read', AnalogFloatSensorRead, self.sensor_read_handler)
 
         self.value = LOW
         
     def read_value(self):
-        return self.controller.analog_read(self.pin)
+        return self.device.analog_read(self.pin)
     
     def write_value(self, value):
-        return self.controller.analog_write(self.pin, value)
+        return self.device.analog_write(self.pin, value)
+    
+    def sensor_read_handler(self, req=None):
+        value = self.read_value()
+        return AnalogFloatSensorReadResponse(value)
+    
+    def sensor_write_handler(self, req):
+        self.write_value(req.value)
+        return AnalogFloatSensorWriteResponse()
     
         
 class DigitalSensor(Sensor):
@@ -136,33 +165,49 @@ class DigitalSensor(Sensor):
         self.msg = Digital()
         self.msg.header.frame_id = self.frame_id
         
+        # Create the publisher
         self.pub = rospy.Publisher("~sensor/" + self.name, Digital, queue_size=5)
         
         if self.direction == "output":
-            self.controller.pin_mode(self.pin, OUTPUT)
+            self.device.pin_mode(self.pin, OUTPUT)
+            # Create the write service
+            rospy.Service('~' + self.name + '/write', DigitalSensorWrite, self.sensor_write_handler)
         else:
-            self.controller.pin_mode(self.pin, INPUT)
+            self.device.pin_mode(self.pin, INPUT)
+            # Create the read service
+            rospy.Service('~' + self.name + '/read', DigitalSensorRead, self.sensor_read_handler)
 
         self.value = LOW
         
     def read_value(self):
-        return self.controller.digital_read(self.pin)
+        return self.device.digital_read(self.pin)
     
     def write_value(self):
         # Alternate HIGH/LOW when writing at a fixed rate
         self.value = not self.value
-        return self.controller.digital_write(self.pin, self.value)
+        return self.device.digital_write(self.pin, self.value)
+    
+    def sensor_read_handler(self, req=None):
+        value = self.read_value()
+        return DigitalSensorReadResponse(value)
+    
+    def sensor_write_handler(self, req):
+        self.write_value(req.value)
+        return DigitalSensorWriteResponse()  
     
     
-class RangeSensor(Sensor):
+class RangeSensor(AnalogFloatSensor):
     def __init__(self, *args, **kwargs):
         super(RangeSensor, self).__init__(*args, **kwargs)
+        
+        self.direction = "input"
         
         self.message_type = MessageType.RANGE
         
         self.msg = Range()
         self.msg.header.frame_id = self.frame_id
         
+        # Create the publisher
         self.pub = rospy.Publisher("~sensor/" + self.name, Range, queue_size=5)
         
     def read_value(self):
@@ -192,7 +237,7 @@ class Ping(SonarSensor):
         
     def read_value(self):
         # The Arduino Ping code returns the distance in centimeters
-        cm = self.controller.ping(self.pin)
+        cm = self.device.ping(self.pin)
         
         # Convert it to meters for ROS
         distance = cm / 100.0
@@ -209,7 +254,7 @@ class GP2D12(IRSensor):
         self.msg.max_range = 0.80
         
     def read_value(self):
-        value = self.controller.analog_read(self.pin)
+        value = self.device.analog_read(self.pin)
         
         
         # The GP2D12 cannot provide a meaning result closer than 3 cm.
@@ -237,7 +282,7 @@ class PololuMotorCurrent(AnalogFloatSensor):
         
     def read_value(self):
         # From the Pololu source code
-        milliamps = self.controller.analog_read(self.pin) * 34
+        milliamps = self.device.analog_read(self.pin) * 34
         return milliamps / 1000.0
     
 class PhidgetsVoltage(AnalogFloatSensor):
@@ -246,7 +291,7 @@ class PhidgetsVoltage(AnalogFloatSensor):
         
     def read_value(self):
         # From the Phidgets documentation
-        voltage = 0.06 * (self.controller.analog_read(self.pin) - 500.)
+        voltage = 0.06 * (self.device.analog_read(self.pin) - 500.)
         return voltage
     
 class PhidgetsCurrent(AnalogFloatSensor):
@@ -255,7 +300,7 @@ class PhidgetsCurrent(AnalogFloatSensor):
         
     def read_value(self):
         # From the Phidgets documentation for the 20 amp DC sensor
-        current = 0.05 * (self.controller.analog_read(self.pin) - 500.)
+        current = 0.05 * (self.device.analog_read(self.pin) - 500.)
         return current
     
 class MaxEZ1Sensor(SonarSensor):
@@ -270,10 +315,6 @@ class MaxEZ1Sensor(SonarSensor):
         self.msg.max_range = 3.0
         
     def read_value(self):
-        return self.controller.get_MaxEZ1(self.trigger_pin, self.output_pin)
+        return self.device.get_MaxEZ1(self.trigger_pin, self.output_pin)
 
-            
-if __name__ == '__main__':
-    myController = Controller()
-    mySensor = SonarSensor(myController, "My Sonar", type=Type.PING, pin=0, rate=10)
             

@@ -114,32 +114,20 @@ class ArduinoROS():
         
         # Initialize individual sensors appropriately
         for name, params in sensor_params.iteritems():
-            # Set the direction to input if not specified
-            try:
-                params['direction']
-            except:
-                params['direction'] = 'input'
-            
-            # Set the frame_id to the base frame if not set   
-            try:
-                params['frame_id']
-            except:
-                params['frame_id'] = self.base_frame
-                
             if params['type'].lower() == 'Ping'.lower():
-                sensor = Ping(self.device, name, params['pin'], params['rate'], params['frame_id'])
+                sensor = Ping(self.device, name, **params)
             elif params['type'].lower() == 'GP2D12'.lower():
-                sensor = GP2D12(self.device, name, params['pin'], params['rate'], params['frame_id'])
+                sensor = GP2D12(self.device, name, **params)
             elif params['type'].lower() == 'Digital'.lower():
-                sensor = DigitalSensor(self.device, name, params['pin'], params['rate'], params['frame_id'], direction=params['direction'])
+                sensor = DigitalSensor(self.device, name, **params)
             elif params['type'].lower() == 'Analog'.lower():
-                sensor = AnalogSensor(self.device, name, params['pin'], params['rate'], params['frame_id'], direction=params['direction'])
+                sensor = AnalogSensor(self.device, name, **params)
             elif params['type'].lower() == 'PololuMotorCurrent'.lower():
-                sensor = PololuMotorCurrent(self.device, name, params['pin'], params['rate'], self.base_frame)
+                sensor = PololuMotorCurrent(self.device, name, **params)
             elif params['type'].lower() == 'PhidgetsVoltage'.lower():
-                sensor = PhidgetsVoltage(self.device, name, params['pin'], params['rate'], self.base_frame)
+                sensor = PhidgetsVoltage(self.device, name, **params)
             elif params['type'].lower() == 'PhidgetsCurrent'.lower():
-                sensor = PhidgetsCurrent(self.device, name, params['pin'], params['rate'], self.base_frame)
+                sensor = PhidgetsCurrent(self.device, name, **params)
                 
 #                if params['type'].lower() == 'MaxEZ1'.lower():
 #                    self.sensors[len(self.sensors)]['trigger_pin'] = params['trigger_pin']
@@ -197,9 +185,10 @@ class ArduinoROS():
         # Start polling the sensors, base controller, and servo controller
         while not rospy.is_shutdown():
             for sensor in self.mySensors:
-                mutex.acquire()
-                sensor.poll()
-                mutex.release()
+                if sensor.rate != 0:
+                    mutex.acquire()
+                    sensor.poll()
+                    mutex.release()
                     
             if self.use_base_controller:
                 mutex.acquire()
