@@ -48,11 +48,11 @@ class SweepServo():
             os._exit(1)
             
         servo_pin = rospy.get_param('/arduino/joints/' + str(joint_name) + '/pin')
-        max_angle = radians(rospy.get_param('/arduino/joints/' + str(joint_name) + '/max_angle'))
-        min_angle = radians(rospy.get_param('/arduino/joints/' + str(joint_name) + '/min_angle'))
+        max_position = radians(rospy.get_param('/arduino/joints/' + str(joint_name) + '/max_position'))
+        min_position = radians(rospy.get_param('/arduino/joints/' + str(joint_name) + '/min_position'))
         
-        target_max = max_angle
-        target_min = min_angle
+        target_max = max_position
+        target_min = min_position
                 
         # How fast should we sweep the servo
         speed = rospy.get_param('~speed', 1.0) # rad/s
