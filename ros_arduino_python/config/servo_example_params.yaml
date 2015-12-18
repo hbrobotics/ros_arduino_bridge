@@ -27,5 +27,5 @@ sensors: {
 
 # Joint name and pin assignment is an example only
 joints: {
-    head_pan_joint: {pin: 3, init_position: 30, init_speed: 90, neutral: 90, min_angle: -90, max_angle: 90, invert: False, continous: False}
+    head_pan_joint: {pin: 3, init_position: 30, init_speed: 90, neutral: 90, min_position: -90, max_position: 90, invert: False, continuous: False}
 }

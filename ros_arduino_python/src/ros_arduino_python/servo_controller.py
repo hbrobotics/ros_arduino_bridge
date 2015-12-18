@@ -64,8 +64,8 @@ class Servo(Joint):
 
         # Min/max/neutral values
         self.neutral = radians(rospy.get_param(n + "neutral", 90.0))       # degrees
-        self.max_angle = radians(rospy.get_param(n + "max_angle", 90.0))   # degrees
-        self.min_angle = radians(rospy.get_param(n + "min_angle", -90.0))  # degrees
+        self.max_position = radians(rospy.get_param(n + "max_position", 90.0))   # degrees
+        self.min_position = radians(rospy.get_param(n + "min_position", -90.0))  # degrees
         self.range = radians(rospy.get_param(n + "range", 180))            # degrees
         self.max_speed = radians(rospy.get_param(n + "max_speed", 250.0))  # deg/s
 
@@ -88,11 +88,11 @@ class Servo(Joint):
 
     def command_cb(self, req):     
         # Check limits
-        if req.data > self.max_angle:
-            req.data = self.max_angle
+        if req.data > self.max_position:
+            req.data = self.max_position
         
-        if req.data < self.min_angle:
-            req.data = self.min_angle
+        if req.data < self.min_position:
+            req.data = self.min_position
         
         # Adjust for the neutral offset
         if self.invert:
