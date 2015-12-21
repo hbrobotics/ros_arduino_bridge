@@ -40,11 +40,10 @@ class MessageType:
     BOOL = 5
     
 class Sensor(object):
-    def __init__(self, device, name, pin=None, type=None, rate=0, direction="input", frame_id="base_link", **kwargs):
+    def __init__(self, device, name, pin=None, rate=0, direction="input", frame_id="base_link", **kwargs):
         self.device = device
         self.name = name
         self.pin = pin
-        self.type = type
         self.rate = rate
         self.direction = direction
         self.frame_id = frame_id
@@ -54,7 +53,7 @@ class Sensor(object):
         if self.rate != 0:
             self.t_delta = rospy.Duration(1.0 / self.rate)
             self.t_next = rospy.Time.now() + self.t_delta
-                
+    
     def poll(self):
         now = rospy.Time.now()
         if now > self.t_next:
@@ -92,7 +91,7 @@ class AnalogSensor(Sensor):
         
         # Create the publisher
         self.pub = rospy.Publisher("~sensor/" + self.name, Analog, queue_size=5)
-        
+
         if self.direction == "output":
             self.device.pin_mode(self.pin, OUTPUT)
             # Create the write service
@@ -109,7 +108,7 @@ class AnalogSensor(Sensor):
     
     def write_value(self, value):
         return self.device.analog_write(self.pin, value)
-            
+
     def sensor_read_handler(self, req=None):
         value = self.read_value()
         return AnalogSensorReadResponse(value)
@@ -117,7 +116,7 @@ class AnalogSensor(Sensor):
     def sensor_write_handler(self, req):
         self.write_value(req.value)
         return AnalogSensorWriteResponse()
-    
+
 class AnalogFloatSensor(Sensor):
     def __init__(self, *args, **kwargs):
         super(AnalogFloatSensor, self).__init__(*args, **kwargs)
@@ -129,7 +128,7 @@ class AnalogFloatSensor(Sensor):
         
         # Create the publisher
         self.pub = rospy.Publisher("~sensor/" + self.name, AnalogFloat, queue_size=5)
-        
+
         if self.direction == "output":
             self.device.pin_mode(self.pin, OUTPUT)
             # Create the write service
@@ -154,7 +153,6 @@ class AnalogFloatSensor(Sensor):
     def sensor_write_handler(self, req):
         self.write_value(req.value)
         return AnalogFloatSensorWriteResponse()
-    
         
 class DigitalSensor(Sensor):
     def __init__(self, *args, **kwargs):
@@ -164,10 +162,10 @@ class DigitalSensor(Sensor):
         
         self.msg = Digital()
         self.msg.header.frame_id = self.frame_id
-        
-        # Create the publisher
+
+        # Create the publisher        
         self.pub = rospy.Publisher("~sensor/" + self.name, Digital, queue_size=5)
-        
+
         if self.direction == "output":
             self.device.pin_mode(self.pin, OUTPUT)
             # Create the write service
@@ -195,31 +193,26 @@ class DigitalSensor(Sensor):
         self.write_value(req.value)
         return DigitalSensorWriteResponse()  
     
-    
-class RangeSensor(AnalogFloatSensor):
+class RangeSensor(Sensor):
     def __init__(self, *args, **kwargs):
         super(RangeSensor, self).__init__(*args, **kwargs)
-        
-        self.direction = "input"
         
         self.message_type = MessageType.RANGE
         
         self.msg = Range()
         self.msg.header.frame_id = self.frame_id
-        
-        # Create the publisher
+
+        # Create the publisher        
         self.pub = rospy.Publisher("~sensor/" + self.name, Range, queue_size=5)
         
     def read_value(self):
         self.msg.header.stamp = rospy.Time.now()
 
-        
 class SonarSensor(RangeSensor):
     def __init__(self, *args, **kwargs):
         super(SonarSensor, self).__init__(*args, **kwargs)
         
         self.msg.radiation_type = Range.ULTRASOUND
-        
         
 class IRSensor(RangeSensor):
     def __init__(self, *args, **kwargs):
@@ -243,7 +236,6 @@ class Ping(SonarSensor):
         distance = cm / 100.0
         
         return distance
-    
         
 class GP2D12(IRSensor):
     def __init__(self, *args, **kwargs):
@@ -255,7 +247,6 @@ class GP2D12(IRSensor):
         
     def read_value(self):
         value = self.device.analog_read(self.pin)
-        
         
         # The GP2D12 cannot provide a meaning result closer than 3 cm.
         if value <= 3.0:
@@ -317,4 +308,5 @@ class MaxEZ1Sensor(SonarSensor):
     def read_value(self):
         return self.device.get_MaxEZ1(self.trigger_pin, self.output_pin)
 
+            
             
