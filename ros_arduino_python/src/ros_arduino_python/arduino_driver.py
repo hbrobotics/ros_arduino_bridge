@@ -65,7 +65,7 @@ class Arduino:
           
             # Needed for Leonardo only
             while not self.port:
-                time.sleep(0.5)
+                time.sleep(self.timeout)
 
             # Now open the port with the real settings
             self.serial_port = serial.Serial(port=self.port, baudrate=self.baudrate, timeout=self.timeout, writeTimeout=self.writeTimeout)
@@ -73,7 +73,7 @@ class Arduino:
             # Test the connection by reading the baudrate
             test = self.get_baud()
             if test != self.baudrate:
-                time.sleep(0.5)
+                time.sleep(self.timeout)
                 test = self.get_baud()   
                 if test != self.baudrate:
                     raise SerialException
@@ -300,6 +300,9 @@ class Arduino:
         ''' Stop both motors.
         '''
         self.drive(0, 0)
+        
+    def analog_pin_mode(self, pin, mode):
+        return self.execute_ack('c A%d %d' %(pin, mode))
             
     def analog_read(self, pin):
         return self.execute('a %d' %pin)
@@ -313,24 +316,24 @@ class Arduino:
     def digital_write(self, pin, value):
         return self.execute_ack('w %d %d' %(pin, value))
     
-    def pin_mode(self, pin, mode):
+    def digital_pin_mode(self, pin, mode):
         return self.execute_ack('c %d %d' %(pin, mode))
     
     def config_servo(self, pin, step_delay):
         ''' Configure a PWM servo '''
-        return self.execute_ack('j %d %d' %(pin, step_delay))
+        return self.execute_ack('j %d %u' %(pin, step_delay))
 
     def servo_write(self, id, pos):
         ''' Usage: servo_write(id, pos)
-            Position is given in radians and converted to degrees before sending
+            Position is given in degrees from 0-180
         '''
-        return self.execute_ack('s %d %d' %(id, degrees(pos)))
+        return self.execute_ack('s %d %d' %(id, pos))
     
     def servo_read(self, id):
         ''' Usage: servo_read(id)
-            The returned position is converted from degrees to radians
+            The returned position is in degrees
         '''        
-        return radians(self.execute('t %d' %id))
+        return int(self.execute('t %d' %id))
     
     def set_servo_delay(self, id, delay):
         ''' Usage: set_servo_delay(id, delay)
