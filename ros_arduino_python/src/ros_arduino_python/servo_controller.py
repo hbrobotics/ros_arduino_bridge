@@ -43,37 +43,40 @@ class Servo(Joint):
         Joint.__init__(self, device, name)
         
         # Construct the namespace for the joint
-        n = ns + "/" + name + "/"
+        namespace = ns + "/" + name + "/"
         
         # The Arduino pin used by this servo
-        self.pin = int(rospy.get_param(n + "pin"))
+        self.pin = int(rospy.get_param(namespace + "pin"))
         
         # Hobby servos have a rated speed giving in seconds per 60 degrees
         # A value of 0.24 seconds per 60 degrees is typical.
-        self.rated_speed = rospy.get_param(n + "rated_speed", 0.24) # seconds per 60 degrees
+        self.rated_speed = rospy.get_param(namespace + "rated_speed", 0.24) # seconds per 60 degrees
         
         # Conversion factors to compute servo speed to step delay between updates
         self.max_rad_per_sec = radians(60.0) / self.rated_speed
         self.ms_per_rad = 1000.0 / self.max_rad_per_sec 
         
         # Convert initial servo speed in deg/s to a step delay in milliseconds
-        step_delay = self.get_step_delay(radians(rospy.get_param(n + "init_speed", 90.0)))
+        step_delay = self.get_step_delay(radians(rospy.get_param(namespace +  "init_speed", 60.0)))
+                
+        # Enable the servo
+        self.device.attach_servo(self.pin)
 
-        # Update the servo speed
+        # Set the servo speed
         self.device.config_servo(self.pin, step_delay)
 
         # Min/max/neutral values
-        self.neutral = radians(rospy.get_param(n + "neutral", 90.0))       # degrees
-        self.max_position = radians(rospy.get_param(n + "max_position", 90.0))   # degrees
-        self.min_position = radians(rospy.get_param(n + "min_position", -90.0))  # degrees
-        self.range = radians(rospy.get_param(n + "range", 180))            # degrees
-        self.max_speed = radians(rospy.get_param(n + "max_speed", 250.0))  # deg/s
+        self.neutral = radians(rospy.get_param(namespace +  "neutral", 90.0))             # degrees
+        self.max_position = radians(rospy.get_param(namespace +  "max_position", 90.0))   # degrees
+        self.min_position = radians(rospy.get_param(namespace +  "min_position", -90.0))  # degrees
+        self.range = radians(rospy.get_param(namespace +  "range", 180))                  # degrees
+        self.max_speed = radians(rospy.get_param(namespace +  "max_speed", 250.0))        # deg/s
 
         # Do we want to reverse positive motion
-        self.invert = rospy.get_param(n + "invert", False)
+        self.invert = rospy.get_param(namespace + "invert", False)
         
-        # Where to we want the servo positioned
-        self.desired = self.neutral + radians(rospy.get_param(n + "init_position", 0))
+        # The desired position of the servo
+        self.desired = self.neutral + radians(rospy.get_param(namespace +  "init_position", 0))
                 
         # Where is the servo positioned now
         self.position = 0.0
@@ -115,15 +118,15 @@ class Servo(Joint):
             try:
                 step_delay = 1000.0 / degrees(1.0) * (1.0 / target_speed - 1.0 / self.max_rad_per_sec)
             except:
-                step_delay = 32767
-            
+                step_delay = 4294967295 # 2^32 - 1
+                            
         # Minimum step delay is 0 millisecond
         step_delay = max(0, step_delay)
         
         return int(step_delay)
     
     def get_current_position(self):
-        return self.device.servo_read(self.pin) - self.neutral
+        return radians(self.device.servo_read(self.pin)) - self.neutral
     
     def relax_cb(self, req):
         self.device.detach_servo(self.pin)
@@ -140,7 +143,7 @@ class Servo(Joint):
     
     def set_speed_cb(self, req):
         # Convert servo speed in rad/s to a step delay in milliseconds
-        step_delay = self.get_step_delay(req.value)
+        step_delay = self.get_step_delay(req.speed)
 
         # Update the servo speed
         self.device.set_servo_delay(self.pin, step_delay)
@@ -180,7 +183,5 @@ class ServoController(Controller):
         
         if rospy.Time.now() > self.w_next:
             for servo in self.servos: 
-                self.device.servo_write(servo.pin, servo.desired)
+                self.device.servo_write(servo.pin, degrees(servo.desired))
             self.w_next = rospy.Time.now() + self.w_delta
-            
-            
