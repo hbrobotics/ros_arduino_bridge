@@ -74,6 +74,12 @@ class ArduinoROS():
         # a single topic.
         self.sensorStatePub = rospy.Publisher('~sensor_state', SensorState, queue_size=5)
         
+        # A service to attach a PWM servo to a specified pin
+        rospy.Service('~servo_attach', ServoAttach, self.ServoAttachHandler)
+        
+        # A service to detach a PWM servo to a specified pin
+        rospy.Service('~servo_detach', ServoDetach, self.ServoDetachHandler)
+        
         # A service to position a PWM servo
         rospy.Service('~servo_write', ServoWrite, self.ServoWriteHandler)
         
@@ -81,7 +87,13 @@ class ArduinoROS():
         rospy.Service('~servo_read', ServoRead, self.ServoReadHandler)
         
         # A service to turn set the direction of a digital pin (0 = input, 1 = output)
+        rospy.Service('~digital_pin_mode', DigitalPinMode, self.DigitalPinModeHandler)
+        
+        # Obsolete: Use DigitalPinMode instead
         rospy.Service('~digital_set_direction', DigitalSetDirection, self.DigitalSetDirectionHandler)
+        
+        # A service to turn set the direction of an analog pin (0 = input, 1 = output)
+        rospy.Service('~analog_pin_mode', AnalogPinMode, self.AnalogPinModeHandler)
         
         # A service to turn a digital sensor on or off
         rospy.Service('~digital_write', DigitalWrite, self.DigitalWriteHandler)
@@ -134,7 +146,15 @@ class ArduinoROS():
 #                    self.sensors[len(self.sensors)]['output_pin'] = params['output_pin']
 
             self.mySensors.append(sensor)
-            rospy.loginfo(name + " " + str(params) + " published on topic " + rospy.get_name() + "/sensor/" + name)
+            
+            if params['rate'] != None and params['rate'] != 0:
+                rospy.loginfo(name + " " + str(params) + " published on topic " + rospy.get_name() + "/sensor/" + name)
+            else:
+                if sensor.direction == "input":
+                    rospy.loginfo(name + " service ready at " + rospy.get_name() + "/" + name + "/read")
+                else:
+                    rospy.loginfo(name + " service ready at " + rospy.get_name() + "/" + name + "/write")
+
             
         # Initialize any joints (servos)
         self.device.joints = dict()
@@ -180,7 +200,7 @@ class ArduinoROS():
         if self.use_base_controller:
             self.myBaseController = BaseController(self.device, self.base_frame)
             
-        print "==> ROS Arduino Bridge ready for action!"
+        print "\n==> ROS Arduino Bridge ready for action!"
     
         # Start polling the sensors, base controller, and servo controller
         while not rospy.is_shutdown():
@@ -188,7 +208,7 @@ class ArduinoROS():
                 if sensor.rate != 0:
                     mutex.acquire()
                     sensor.poll()
-                    mutex.release()
+                    mutex.release()                  
                     
             if self.use_base_controller:
                 mutex.acquire()
@@ -221,28 +241,42 @@ class ArduinoROS():
             r.sleep()
     
     # Service callback functions
+    def ServoAttachHandler(self, req):
+        self.device.attach_servo(req.id)
+        return ServoAttachResponse()
+    
+    def ServoDetachHandler(self, req):
+        self.device.detach_servo(req.id)
+        return ServoDetachResponse()
+    
     def ServoWriteHandler(self, req):
-        self.device.servo_write(req.id, req.value)
+        self.device.servo_write(req.id, req.position)
         return ServoWriteResponse()
     
-    def SetServoSpeedWriteHandler(self, req):
-        index = self.joint.values['pin'].index(req.pin)
-        name = self.device.joints.keys[index]
-        
-        # Convert servo speed in deg/s to a step delay in milliseconds
-        step_delay = self.device.joints[name].get_step_delay(req.value)
-
-        # Update the servo speed
-        self.device.config_servo(pin, step_delay)
-        
-        return SetServoSpeedResponse()
+#     def ServoSpeedWriteHandler(self, req):
+#         delay = 
+#         self.device.servo_delay(req.id, delay)
+#         return ServoSpeedResponse()
+# 
+#         # Convert servo speed in deg/s to a step delay in milliseconds
+#         step_delay = self.device.joints[name].get_step_delay(req.value)
+# 
+#         # Update the servo speed
+#         self.device.config_servo(pin, step_delay)
+#         
+#         return SetServoSpeedResponse()
     
     def ServoReadHandler(self, req):
-        pos = self.device.servo_read(req.id)
-        return ServoReadResponse(pos)
+        position = self.device.servo_read(req.id)
+        return ServoReadResponse(position)
     
+    def DigitalPinModeHandler(self, req):
+        self.device.digital_pin_mode(req.pin, req.direction)
+        return DigitalPinModeResponse()
+    
+    # Obsolete: use DigitalPinMode instead
     def DigitalSetDirectionHandler(self, req):
-        self.device.pin_mode(req.pin, req.direction)
+        self.device.digital_pin_mode(req.pin, req.direction)
         return DigitalSetDirectionResponse()
     
     def DigitalWriteHandler(self, req):
@@ -252,6 +286,10 @@ class ArduinoROS():
     def DigitalReadHandler(self, req):
         value = self.device.digital_read(req.pin)
         return DigitalReadResponse(value)
+    
+    def AnalogPinModeHandler(self, req):
+        self.device.analog_pin_mode(req.pin, req.direction)
+        return AnalogPinModeResponse()
               
     def AnalogWriteHandler(self, req):
         self.device.analog_write(req.pin, req.value)
