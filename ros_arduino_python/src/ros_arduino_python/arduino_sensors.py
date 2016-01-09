@@ -90,14 +90,15 @@ class AnalogSensor(Sensor):
         self.msg.header.frame_id = self.frame_id
         
         # Create the publisher
-        self.pub = rospy.Publisher("~sensor/" + self.name, Analog, queue_size=5)
+        if self.rate != 0:
+            self.pub = rospy.Publisher("~sensor/" + self.name, Analog, queue_size=5)
 
         if self.direction == "output":
-            self.device.pin_mode(self.pin, OUTPUT)
+            self.device.analog_pin_mode(self.pin, OUTPUT)
             # Create the write service
             rospy.Service('~' + self.name + '/write', AnalogSensorWrite, self.sensor_write_handler)
         else:
-            self.device.pin_mode(self.pin, INPUT)
+            self.device.analog_pin_mode(self.pin, INPUT)
             # Create the read service
             rospy.Service('~' + self.name + '/read', AnalogSensorRead, self.sensor_read_handler)
 
@@ -110,11 +111,12 @@ class AnalogSensor(Sensor):
         return self.device.analog_write(self.pin, value)
 
     def sensor_read_handler(self, req=None):
-        value = self.read_value()
-        return AnalogSensorReadResponse(value)
+        self.value = self.read_value()
+        return AnalogSensorReadResponse(self.value)
     
     def sensor_write_handler(self, req):
         self.write_value(req.value)
+        self.value = req.value
         return AnalogSensorWriteResponse()
 
 class AnalogFloatSensor(Sensor):
@@ -127,14 +129,15 @@ class AnalogFloatSensor(Sensor):
         self.msg.header.frame_id = self.frame_id
         
         # Create the publisher
-        self.pub = rospy.Publisher("~sensor/" + self.name, AnalogFloat, queue_size=5)
+        if self.rate != 0:
+            self.pub = rospy.Publisher("~sensor/" + self.name, AnalogFloat, queue_size=5)
 
         if self.direction == "output":
-            self.device.pin_mode(self.pin, OUTPUT)
+            self.device.analog_pin_mode(self.pin, OUTPUT)
             # Create the write service
             rospy.Service('~' + self.name + '/write', AnalogFloatSensorWrite, self.sensor_write_handler)
         else:
-            self.device.pin_mode(self.pin, INPUT)
+            self.device.analog_pin_mode(self.pin, INPUT)
             # Create the read service
             rospy.Service('~' + self.name + '/read', AnalogFloatSensorRead, self.sensor_read_handler)
 
@@ -147,11 +150,12 @@ class AnalogFloatSensor(Sensor):
         return self.device.analog_write(self.pin, value)
     
     def sensor_read_handler(self, req=None):
-        value = self.read_value()
-        return AnalogFloatSensorReadResponse(value)
+        self.value = self.read_value()
+        return AnalogFloatSensorReadResponse(self.value)
     
     def sensor_write_handler(self, req):
         self.write_value(req.value)
+        self.value = req.value
         return AnalogFloatSensorWriteResponse()
         
 class DigitalSensor(Sensor):
@@ -163,34 +167,44 @@ class DigitalSensor(Sensor):
         self.msg = Digital()
         self.msg.header.frame_id = self.frame_id
 
-        # Create the publisher        
-        self.pub = rospy.Publisher("~sensor/" + self.name, Digital, queue_size=5)
+        # Create the publisher
+        if self.rate != 0:    
+            self.pub = rospy.Publisher("~sensor/" + self.name, Digital, queue_size=5)
+            
+        # Get the initial state
+        self.value = self.read_value()
 
         if self.direction == "output":
-            self.device.pin_mode(self.pin, OUTPUT)
+            self.device.digital_pin_mode(self.pin, OUTPUT)
+
             # Create the write service
             rospy.Service('~' + self.name + '/write', DigitalSensorWrite, self.sensor_write_handler)
         else:
-            self.device.pin_mode(self.pin, INPUT)
-            # Create the read service
-            rospy.Service('~' + self.name + '/read', DigitalSensorRead, self.sensor_read_handler)
+            self.device.digital_pin_mode(self.pin, INPUT)
+            
+        # Create the read service
+        rospy.Service('~' + self.name + '/read', DigitalSensorRead, self.sensor_read_handler)
 
-        self.value = LOW
         
     def read_value(self):
         return self.device.digital_read(self.pin)
     
-    def write_value(self):
-        # Alternate HIGH/LOW when writing at a fixed rate
-        self.value = not self.value
+    def write_value(self, value=None):
+        # Alternate HIGH/LOW when publishing at a fixed rate
+        if self.rate != 0:
+            self.value = not self.value
+        else:
+            self.value = value
+        
         return self.device.digital_write(self.pin, self.value)
     
     def sensor_read_handler(self, req=None):
-        value = self.read_value()
-        return DigitalSensorReadResponse(value)
+        self.value = self.read_value()
+        return DigitalSensorReadResponse(self.value)
     
     def sensor_write_handler(self, req):
         self.write_value(req.value)
+        self.value = req.value
         return DigitalSensorWriteResponse()  
     
 class RangeSensor(Sensor):
@@ -202,11 +216,16 @@ class RangeSensor(Sensor):
         self.msg = Range()
         self.msg.header.frame_id = self.frame_id
 
-        # Create the publisher        
-        self.pub = rospy.Publisher("~sensor/" + self.name, Range, queue_size=5)
+        # Create the publisher
+        if self.rate != 0: 
+            self.pub = rospy.Publisher("~sensor/" + self.name, Range, queue_size=5)
         
-    def read_value(self):
-        self.msg.header.stamp = rospy.Time.now()
+        # Create the read service
+        rospy.Service('~' + self.name + '/read', AnalogFloatSensorRead, self.sensor_read_handler)
+        
+    def sensor_read_handler(self, req=None):
+        self.value = self.read_value()
+        return AnalogFloatSensorReadResponse(self.value)
 
 class SonarSensor(RangeSensor):
     def __init__(self, *args, **kwargs):
