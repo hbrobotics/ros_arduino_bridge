@@ -35,7 +35,7 @@ class SweepServo():
         self.node_name = "sweep_servo"
         
         # Initialize the node
-        rospy.init_node(self.node_name, anonymous=True)
+        rospy.init_node(self.node_name)
                 
         # Set a shutdown function to clean up when termniating the node
         rospy.on_shutdown(self.shutdown)
@@ -43,11 +43,10 @@ class SweepServo():
         # Name of the joint we want to control
         joint_name = rospy.get_param('~joint', 'head_pan_joint')
             
-        if joint_name == '':
+        if joint_name is None or joint_name == '':
             rospy.logino("Joint name for servo must be specified in parameter file.")
             os._exit(1)
             
-        servo_pin = rospy.get_param('/arduino/joints/' + str(joint_name) + '/pin')
         max_position = radians(rospy.get_param('/arduino/joints/' + str(joint_name) + '/max_position'))
         min_position = radians(rospy.get_param('/arduino/joints/' + str(joint_name) + '/min_position'))
         
@@ -55,11 +54,11 @@ class SweepServo():
         target_min = min_position
                 
         # How fast should we sweep the servo
-        speed = rospy.get_param('~speed', 1.0) # rad/s
+        servo_speed = rospy.get_param('~servo_speed', 1.0) # rad/s
         
-        # Time between between sweeps
-        delay = rospy.get_param('~delay', 2)  # seconds
-        
+        # Time delay between between sweeps
+        delay = rospy.get_param('~delay', 0)  # seconds
+                
         # Create a publisher for setting the joint position
         joint_pub = rospy.Publisher('/' + joint_name + '/command', Float64, queue_size=5)
         
@@ -88,7 +87,7 @@ class SweepServo():
         set_speed = rospy.ServiceProxy('/' + joint_name + '/set_speed', SetSpeed)
         
         # Set the initial servo speed
-        set_speed(speed)
+        set_speed(servo_speed)
 
         rospy.loginfo('Sweeping servo...')
         
@@ -122,4 +121,3 @@ if __name__ == '__main__':
     except: 
         rospy.loginfo('Unexpected error: ' +  str(sys.exc_info()[0]))
         raise
-    

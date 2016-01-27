@@ -17,25 +17,29 @@ class SweepServo2
     
     void initServo(
         int servoPin,
-        int stepDelayMs);
+        unsigned long stepDelayMs);
 
      void setServoDelay(
         int servoPin,
-        int stepDelayMs);
+        unsigned long stepDelayMs);
         
     void moveServo();
     void setTargetPosition(int position);
     void setServoDelay(int delay);
     int getCurrentPosition();
-
+    void enable();
+    void disable();
+    bool isEnabled();
+    
     Servo getServo();
 
   private:
     Servo servo;
-    int stepDelayMs;
+    unsigned long stepDelayMs;
     int currentPositionDegrees;
     int targetPositionDegrees;
-    long lastSweepCommand;
+    unsigned long lastSweepCommand;
+    bool enabled;
 };
 
 SweepServo2 myServos [MAX_N_SERVOS];
@@ -43,3 +47,4 @@ SweepServo2 myServos [MAX_N_SERVOS];
 int myServoPins [MAX_N_SERVOS];
 
 #endif
+

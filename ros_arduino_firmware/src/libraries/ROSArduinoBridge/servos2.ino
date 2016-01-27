@@ -26,7 +26,7 @@ SweepServo2::SweepServo2()
 // Init
 void SweepServo2::initServo(
     int servoPin,
-    int stepDelayMs)
+    unsigned long stepDelayMs)
 {
   this->stepDelayMs = stepDelayMs;
   this->currentPositionDegrees = 90;
@@ -38,7 +38,7 @@ void SweepServo2::initServo(
 // Init
 void SweepServo2::setServoDelay(
     int servoPin,
-    int stepDelayMs)
+    unsigned long stepDelayMs)
 {
   this->stepDelayMs = stepDelayMs;
 }
@@ -48,7 +48,7 @@ void SweepServo2::moveServo()
 {
 
   // Get ellapsed time
-  int delta = millis() - this->lastSweepCommand;
+  unsigned long delta = millis() - this->lastSweepCommand;
 
   // Check if time for a step
   if (delta > this->stepDelayMs) {
@@ -80,13 +80,16 @@ int SweepServo2::getCurrentPosition()
   return this->currentPositionDegrees;
 }
 
-// Check whether we have already configured this servo
-bool haveServo(int pin) {
-  int i;
-  for (i = 0; i < nServos; i++) {
-    if (myServoPins[i] == pin) return true;
-  }
-  return false;
+void SweepServo2::enable() {
+    this->enabled = true;
+}
+
+void SweepServo2::disable() {
+    this->enabled = false;
+}
+
+bool SweepServo2::isEnabled() {
+    return this->enabled;
 }
 
 // Accessor for servo object
@@ -96,4 +99,14 @@ Servo SweepServo2::getServo()
 }
 
 
+// Check whether we have already configured this servo
+bool haveServo(int pin) {
+  int i;
+  for (i = 0; i < nServos; i++) {
+    if (myServoPins[i] == pin) return true;
+  }
+  return false;
+}
+
 #endif
+

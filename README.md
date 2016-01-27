@@ -22,7 +22,7 @@ Overview
 --------
 This branch (indigo-devel) is intended for ROS Indigo and above, and uses the Catkin buildsystem. It may also be compatible with ROS Hydro.
 
-This ROS stack includes an Arduino library (called ROSArduinoBridge) and a collection of ROS packages for controlling an Arduino-based robot using standard ROS messages and services.  The stack does **not** depend on ROS Serial.
+This ROS metapackage includes an Arduino library (called ROSArduinoBridge) and a collection of ROS packages for controlling an Arduino-based robot using standard ROS messages and services.  The stack does **not** depend on ROS Serial.
 
 Features of the stack include:
 
@@ -43,7 +43,9 @@ the PC. The base controller requires the use of a motor controller and encoders 
 * Pololu VNH5019 dual motor controller shield (http://www.pololu.com/catalog/product/2502) or Pololu MC33926 dual motor shield (http://www.pololu.com/catalog/product/2503).
 
 * Robogaia Mega Encoder shield
-(http://www.robogaia.com/two-axis-encoder-counter-mega-shield-version-2.html) or on-board wheel encoder counters.
+(http://www.robogaia.com/two-axis-encoder-counter-mega-shield-version-2.html)
+
+* Instead of the Encoder shield, wheel encoders can be [connected directly](#using-the-on-board-wheel-encoder-counters-arduino-uno-only) if using an Arduino Uno
 
 **NOTE:** The Robogaia Mega Encoder shield can only be used with an Arduino Mega. The on-board wheel encoder counters are currently only supported by Arduino Uno.
 
@@ -91,7 +93,7 @@ http://www.robogaia.com/uploads/6/8/0/9/6809982/__megaencodercounter-1.3.tar.gz
 These libraries should be installed in your standard Arduino
 sketchbook/libraries directory.
 
-Finally, it is assumed you are using version 1.0 or greater of the
+Finally, it is assumed you are using version 1.6.6 or greater of the
 Arduino IDE.
 
 Preparing your Serial Port under Linux

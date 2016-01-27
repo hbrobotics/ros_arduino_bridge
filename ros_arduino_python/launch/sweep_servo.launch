@@ -1,7 +1,9 @@
 <launch>
    <arg name="joint" default="head_pan_joint" />
    
-   <node pkg="ros_arduino_python" name="$(anon sweep_servo)" type="sweep_servo.py" output="screen" clear_params="true">
+   <node pkg="rbx3_demo" name="sweep_servo" type="sweep_servo.py" output="screen" clear_params="true">
       <param name="joint" value="$(arg joint)" />
+      <param name="servo_speed" value="1.0" />
+      <param name="delay" value="0.0" />
    </node>
 </launch>

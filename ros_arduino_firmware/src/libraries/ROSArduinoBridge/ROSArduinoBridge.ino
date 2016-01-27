@@ -50,13 +50,22 @@
 /* Define the motor controller and encoder library you are using */
 #ifdef USE_BASE
    /* The Pololu VNH5019 dual motor driver shield */
-   #define POLOLU_VNH5019
+   //#define POLOLU_VNH5019
 
    /* The Pololu MC33926 dual motor driver shield */
    //#define POLOLU_MC33926
 
+   /* The Ardunino Motor Shield R3 */
+   //#define ARDUINO_MOTOR_SHIELD_R3
+
+   /* For testing only */
+   //#define NO_MOTOR_CONTROLLER
+
    /* The RoboGaia encoder shield */
-   #define ROBOGAIA
+   //#define ROBOGAIA
+
+   /* The RoboGaia 3-axis encoder shield */
+   //#define ROBOGAIA_3_AXIS
    
    /* Encoders directly attached to Arduino board */
    //#define ARDUINO_ENC_COUNTER
@@ -93,6 +102,11 @@
 #ifdef USE_BASE
   /* Motor driver function definitions */
   #include "motor_driver.h"
+
+  #ifdef ROBOGAIA_3_AXIS
+    // The sensor communicates using SPI, so include the library:
+    #include <SPI.h>
+  #endif
 
   /* Encoder driver function definitions */
   #include "encoder_driver.h"
@@ -193,15 +207,18 @@ int runCommand() {
     break;
 #elif defined(USE_SERVOS2)
   case CONFIG_SERVO:
-    myServos[arg1].initServo(arg1, arg2);
     if (!haveServo(arg1)) {
+      myServos[arg1].initServo(arg1, arg2);
       myServoPins[nServos] = arg1;
+      myServos[arg1].enable();
       nServos++;
     }
     Serial.println("OK");
     break;
   case SERVO_WRITE:
-    myServos[arg1].setTargetPosition(arg2);
+    if (myServos[arg1].isEnabled()) {
+      myServos[arg1].setTargetPosition(arg2);
+    }
     Serial.println("OK");
     break;
   case SERVO_READ:
@@ -213,10 +230,19 @@ int runCommand() {
     break;
   case DETACH_SERVO:
     myServos[arg1].getServo().detach();
+    myServos[arg1].disable();
     Serial.println("OK");
     break;
   case ATTACH_SERVO:
-    myServos[arg1].getServo().attach(arg1);
+    if (!haveServo(arg1)) {
+      myServos[arg1].initServo(arg1, 0);
+      myServoPins[nServos] = arg1;
+      nServos++;
+    }
+    else {
+      myServos[arg1].getServo().attach(arg1);  
+    }
+    myServos[arg1].enable();
     Serial.println("OK");
     break;
 
@@ -270,27 +296,8 @@ void setup() {
 
   // Initialize the motor controller if used */
   #ifdef USE_BASE
-    #ifdef ARDUINO_ENC_COUNTER
-      //set as inputs
-      DDRD &= ~(1<<LEFT_ENC_PIN_A);
-      DDRD &= ~(1<<LEFT_ENC_PIN_B);
-      DDRC &= ~(1<<RIGHT_ENC_PIN_A);
-      DDRC &= ~(1<<RIGHT_ENC_PIN_B);
-    
-      // Enable pull up resistors
-      PORTD |= (1<<LEFT_ENC_PIN_A);
-      PORTD |= (1<<LEFT_ENC_PIN_B);
-      PORTC |= (1<<RIGHT_ENC_PIN_A);
-      PORTC |= (1<<RIGHT_ENC_PIN_B);
-    
-      // Tell pin change mask to listen to left encoder pins
-      PCMSK2 |= (1 << LEFT_ENC_PIN_A)|(1 << LEFT_ENC_PIN_B);
-      // Tell pin change mask to listen to right encoder pins
-      PCMSK1 |= (1 << RIGHT_ENC_PIN_A)|(1 << RIGHT_ENC_PIN_B);
-    
-      // Enable PCINT1 and PCINT2 interrupt in the general interrupt mask
-      PCICR |= (1 << PCIE1) | (1 << PCIE2);
-    #endif
+    /* Initialize the encoder interface */
+    initEncoders();
     initMotorController();
     resetPID();
   #endif
