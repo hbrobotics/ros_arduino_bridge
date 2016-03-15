@@ -19,8 +19,8 @@
   #define chipSelectPin2 9
   #define chipSelectPin3 8
 
-#define CNTR B00100000
-#define CLR B00000000
+  #define CNTR B00100000
+  #define CLR B00000000
 #endif
 
 void initEncoders();
