@@ -32,6 +32,7 @@
     setMotorSpeed(LEFT, leftSpeed);
     setMotorSpeed(RIGHT, rightSpeed);
   }
+  
 #elif defined POLOLU_MC33926
   /* Include the Pololu library */
   #include "DualMC33926MotorShield.h"
@@ -55,19 +56,53 @@
     setMotorSpeed(LEFT, leftSpeed);
     setMotorSpeed(RIGHT, rightSpeed);
   }
+
+#elif defined ADAFRUIT_MOTOR_SHIELD_V2
+  /* Wrap the motor driver initialization */
+  void initMotorController() {  
+    AFMS.begin();
+  }
+
+  /* Wrap the drive motor set speed function */
+  void setMotorSpeed(int i, int spd) {
+    if (i == LEFT) {
+      if (spd < 0) {
+         myLeftMotor->run(BACKWARD);
+         spd = -spd;
+      }
+      else myLeftMotor->run(FORWARD);
+      myLeftMotor->setSpeed(spd);
+    }
+    else {
+      if (spd < 0) {
+         myRightMotor->run(BACKWARD);
+         spd = -spd;
+      }
+      else myRightMotor->run(FORWARD);
+      myRightMotor->setSpeed(spd);
+    }
+  }
+
+  // A convenience function for setting both motor speeds
+  void setMotorSpeeds(int leftSpeed, int rightSpeed) {
+    setMotorSpeed(LEFT, leftSpeed);
+    setMotorSpeed(RIGHT, rightSpeed);
+  }
+
 #elif defined ARDUINO_MOTOR_SHIELD_R3
-  /* Include the pin definitions for the shield */
-  #include "arduino_motor_shield_r3.h"
-  
   /* Wrap the motor driver initialization */
   void initMotorController() {
+    /* If the brake function is enabled */
+    #ifdef USE_ARDUINO_MOTOR_SHIELD_R3_BRAKE
+      pinMode(LEFT_MOTOR_PIN_BRAKE, OUTPUT);   // Initiates Brake Channel A pin
+      pinMode(RIGHT_MOTOR_PIN_BRAKE, OUTPUT);  // Initiates Brake Channel B pin
+    #endif
+    
     // Set up Channel A - LEFT
-    pinMode(LEFT_MOTOR_PIN_DIR, OUTPUT); // Initiates Motor Channel A pin
-    pinMode(LEFT_MOTOR_PIN_BRAKE, OUTPUT); // Initiates Brake Channel A pin
+    pinMode(LEFT_MOTOR_PIN_DIR, OUTPUT);   // Initiates Motor Channel A pin
 
     // Set up Channel B - RIGHT
     pinMode(RIGHT_MOTOR_PIN_DIR, OUTPUT); // Initiates Motor Channel B pin
-    pinMode(RIGHT_MOTOR_PIN_BRAKE, OUTPUT);  // Initiates Brake Channel B pin
   }
 
   /* Wrap the drive motor set speed function */
@@ -76,17 +111,21 @@
       if (spd < 0) digitalWrite(LEFT_MOTOR_PIN_DIR, LOW);
       else digitalWrite(LEFT_MOTOR_PIN_DIR, HIGH);
 
-      if (spd == 0) digitalWrite(LEFT_MOTOR_PIN_BRAKE, HIGH);
-      else digitalWrite(LEFT_MOTOR_PIN_BRAKE, LOW);
+      #ifdef USE_ARDUINO_MOTOR_SHIELD_R3_BRAKE
+        if (spd == 0) digitalWrite(LEFT_MOTOR_PIN_BRAKE, HIGH);
+        else digitalWrite(LEFT_MOTOR_PIN_BRAKE, LOW);
+      #endif
 
       analogWrite(LEFT_MOTOR_PIN_SPEED, spd);
     }
     else {
       if (spd < 0) digitalWrite(RIGHT_MOTOR_PIN_DIR, LOW);
       else digitalWrite(RIGHT_MOTOR_PIN_DIR, HIGH);
-      
-      if (spd == 0) digitalWrite(RIGHT_MOTOR_PIN_BRAKE, HIGH);
-      else digitalWrite(RIGHT_MOTOR_PIN_BRAKE, LOW);
+
+      #ifdef USE_ARDUINO_MOTOR_SHIELD_R3_BRAKE
+        if (spd == 0) digitalWrite(RIGHT_MOTOR_PIN_BRAKE, HIGH);
+        else digitalWrite(RIGHT_MOTOR_PIN_BRAKE, LOW);
+      #endif
       
       analogWrite(RIGHT_MOTOR_PIN_SPEED, spd);
     }
