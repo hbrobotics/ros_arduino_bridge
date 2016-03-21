@@ -25,14 +25,14 @@ from ros_arduino_python.arduino_sensors import *
 from ros_arduino_msgs.srv import *
 from ros_arduino_python.base_controller import BaseController
 from ros_arduino_python.servo_controller import Servo, ServoController
-from ros_arduino_python.follow_controller import FollowController
+#from ros_arduino_python.follow_controller import FollowController
 from ros_arduino_python.joint_state_publisher import JointStatePublisher
 from geometry_msgs.msg import Twist
 import os, time
 import thread
 from math import radians
 
-controller_types = { "follow_controller" : FollowController }
+#controller_types = { "follow_controller" : FollowController }
 
 class ArduinoROS():
     def __init__(self):
@@ -167,7 +167,13 @@ class ArduinoROS():
             
             # Configure each servo
             for name, params in joint_params.iteritems():
-                self.device.joints[name] = Servo(self.device, name)
+                try:
+                    if params['continuous'] == True:
+                        self.device.joints[name] = ContinuousServo(self.device, name)
+                    else:
+                        self.device.joints[name] = Servo(self.device, name)        
+                except:
+                    self.device.joints[name] = Servo(self.device, name)
 
                 # Display the joint setup on the terminal
                 rospy.loginfo(name + " " + str(params))
