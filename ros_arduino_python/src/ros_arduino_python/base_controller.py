@@ -36,6 +36,8 @@ class BaseController:
         self.base_frame = base_frame
         self.rate = float(rospy.get_param("~base_controller_rate", 10))
         self.timeout = rospy.get_param("~base_controller_timeout", 1.0)
+        self.odom_linear_scale_correction = rospy.get_param("~odom_linear_scale_correction", 1.0)
+        self.odom_angular_scale_correction = rospy.get_param("~odom_angular_scale_correction", 1.0)
         self.stopped = False
                  
         pid_params = dict()
@@ -142,8 +144,8 @@ class BaseController:
             self.enc_right = right_enc
             self.enc_left = left_enc
             
-            dxy_ave = (dright + dleft) / 2.0
-            dth = (dright - dleft) / self.wheel_track
+            dxy_ave = self.odom_linear_scale_correction * (dright + dleft) / 2.0
+            dth = self.odom_angular_scale_correction * (dright - dleft) / self.wheel_track
             vxy = dxy_ave / dt
             vth = dth / dt
                 
