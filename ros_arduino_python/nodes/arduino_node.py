@@ -28,6 +28,7 @@ from ros_arduino_python.servo_controller import Servo, ServoController
 #from ros_arduino_python.follow_controller import FollowController
 from ros_arduino_python.joint_state_publisher import JointStatePublisher
 from geometry_msgs.msg import Twist
+from std_srvs.srv import Empty, EmptyResponse
 import os, time
 import thread
 from math import radians
@@ -106,6 +107,9 @@ class ArduinoROS():
         
         # A service to read the value of an analog sensor
         rospy.Service('~analog_read', AnalogRead, self.AnalogReadHandler)
+
+        # A service to reset the odometry values to 0
+        rospy.Service('~reset_odometry', Empty, self.ResetOdometryHandler)
 
         # Initialize the device
         self.device = Arduino(self.port, self.baud, self.timeout)
@@ -304,6 +308,13 @@ class ArduinoROS():
     def AnalogReadHandler(self, req):
         value = self.device.analog_read(req.pin)
         return AnalogReadResponse(value)
+
+    def ResetOdometryHandler(self, req):
+        if self.use_base_controller:
+            self.myBaseController.reset_odometry()
+        else:
+            rospy.logwarn("Not using base controller!")
+        return EmptyResponse()
         
     def shutdown(self):
         rospy.loginfo("Shutting down Arduino node...")

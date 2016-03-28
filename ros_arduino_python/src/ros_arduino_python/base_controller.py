@@ -232,7 +232,7 @@ class BaseController:
                 self.arduino.drive(self.v_left, self.v_right)
                 
             self.t_next = now + self.t_delta
-            
+
     def stop(self):
         self.stopped = True
         self.arduino.drive(0, 0)
@@ -259,9 +259,8 @@ class BaseController:
         self.v_des_left = int(left * self.ticks_per_meter / self.arduino.PID_RATE)
         self.v_des_right = int(right * self.ticks_per_meter / self.arduino.PID_RATE)
         
-
+    def reset_odometry(self):
+        self.x = 0.0
+        self.y = 0.0
+        self.th = 0.0
         
-
-    
-
-    
