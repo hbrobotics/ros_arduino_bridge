@@ -28,6 +28,7 @@ from math import sin, cos, pi
 from geometry_msgs.msg import Quaternion, Twist, Pose
 from nav_msgs.msg import Odometry
 from tf.broadcaster import TransformBroadcaster
+from sys import float_info
  
 """ Class to receive Twist commands and publish Odometry data """
 class BaseController:
@@ -38,6 +39,7 @@ class BaseController:
         self.timeout = rospy.get_param("~base_controller_timeout", 1.0)
         self.odom_linear_scale_correction = rospy.get_param("~odom_linear_scale_correction", 1.0)
         self.odom_angular_scale_correction = rospy.get_param("~odom_angular_scale_correction", 1.0)
+        self.use_imu_heading = rospy.get_param("~use_imu_heading", False)
         self.stopped = False
                  
         pid_params = dict()
@@ -184,6 +186,22 @@ class BaseController:
             odom.twist.twist.linear.x = vxy
             odom.twist.twist.linear.y = 0
             odom.twist.twist.angular.z = vth
+            
+            """
+            Covariance values taken from Kobuki node odometry.hpp at:
+            https://github.com/yujinrobot/kobuki/blob/indigo/kobuki_node/src/library/odometry.cpp
+            
+            Pose covariance (required by robot_pose_ekf) TODO: publish realistic values
+            Odometry yaw covariance must be much bigger than the covariance provided
+            by the imu, as the later takes much better measures
+            """
+            odom.pose.covariance[0]  = 0.1
+            odom.pose.covariance[7]  = 0.1
+            odom.pose.covariance[35] = 0.05 if self.use_imu_heading else 0.2
+            
+            odom.pose.covariance[14] = float_info.max  # set a non-zero covariance on unused
+            odom.pose.covariance[21] = float_info.max  # dimensions (z, pitch and roll); this
+            odom.pose.covariance[28] = float_info.max  # is a requirement of robot_pose_ekf
 
             self.odomPub.publish(odom)
             
