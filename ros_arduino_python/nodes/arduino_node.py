@@ -214,6 +214,20 @@ class ArduinoROS():
     
         # Start polling the sensors, base controller, and servo controller
         while not rospy.is_shutdown():
+            # Heartbeat test for the serial connection
+            try:
+                self.device.serial_port.inWaiting()
+            except IOError:
+                rospy.loginfo("Lost serial connection...")
+                self.device.close()
+                while True:
+                    try:
+                        self.device.open()
+                        rospy.loginfo("Serial connection re-established.")
+                        break
+                    except:
+                        r.sleep()
+
             for sensor in self.mySensors:
                 if sensor.rate != 0:
                     mutex.acquire()
