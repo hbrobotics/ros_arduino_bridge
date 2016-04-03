@@ -39,7 +39,6 @@ class BaseController:
         self.timeout = rospy.get_param("~base_controller_timeout", 1.0)
         self.odom_linear_scale_correction = rospy.get_param("~odom_linear_scale_correction", 1.0)
         self.odom_angular_scale_correction = rospy.get_param("~odom_angular_scale_correction", 1.0)
-        self.use_imu_heading = rospy.get_param("~use_imu_heading", False)
         self.stopped = False
                  
         pid_params = dict()
@@ -101,7 +100,7 @@ class BaseController:
         # Check to see if any PID parameters are missing
         missing_params = False
         for param in pid_params:
-            if pid_params[param] == "":
+            if pid_params[param] is None or pid_params[param] == "":
                 print("*** PID Parameter " + param + " is missing. ***")
                 missing_params = True
         
@@ -130,7 +129,7 @@ class BaseController:
                 self.bad_encoder_count += 1
                 rospy.logerr("Encoder exception count: " + str(self.bad_encoder_count))
                 return
-                            
+
             dt = now - self.then
             self.then = now
             dt = dt.to_sec()
