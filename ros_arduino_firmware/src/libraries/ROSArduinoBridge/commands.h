@@ -10,6 +10,7 @@
 #define PIN_MODE       'c'
 #define DIGITAL_READ   'd'
 #define READ_ENCODERS  'e'
+#define READ_IMU       'i'
 #define CONFIG_SERVO   'j'
 #define MOTOR_SPEEDS   'm'
 #define PING           'p'

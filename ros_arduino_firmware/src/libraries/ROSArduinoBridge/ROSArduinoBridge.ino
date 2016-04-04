@@ -45,30 +45,41 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-//#define USE_BASE      // Enable/disable the base controller code
+#define USE_BASE      // Enable/disable the base controller code
+
+//#define USE_IMU       // Enable/disable use of an IMU
 
 /* Define the motor controller and encoder library you are using */
 #ifdef USE_BASE
-   /* The Pololu VNH5019 dual motor driver shield */
-   //#define POLOLU_VNH5019
+  /* The Pololu VNH5019 dual motor driver shield */
+  //#define POLOLU_VNH5019
 
-   /* The Pololu MC33926 dual motor driver shield */
-   //#define POLOLU_MC33926
+  /* The Pololu MC33926 dual motor driver shield */
+  //#define POLOLU_MC33926
 
-   /* The Ardunino Motor Shield R3 */
-   //#define ARDUINO_MOTOR_SHIELD_R3
+  /* The Adafruit motor shield V2 */
+  #define ADAFRUIT_MOTOR_SHIELD_V2
 
-   /* For testing only */
-   //#define NO_MOTOR_CONTROLLER
-
-   /* The RoboGaia encoder shield */
-   //#define ROBOGAIA
-
-   /* The RoboGaia 3-axis encoder shield */
-   //#define ROBOGAIA_3_AXIS
-   
-   /* Encoders directly attached to Arduino board */
-   //#define ARDUINO_ENC_COUNTER
+  /* The Ardunino Motor Shield R3 */
+  //#define ARDUINO_MOTOR_SHIELD_R3
+  
+  /* The brake uses digital pins 8 and 9 and is not compatible with the Robogaia 3-axis
+  *  endcoder shield.  Cut the brake jumpers on the R3 motor shield if you want to use
+  *  it with the 3-axis encoder shield.
+  */
+  //#define USE_ARDUINO_MOTOR_SHIELD_R3_BRAKE
+  
+  /* For testing only */
+  // #define NO_MOTOR_CONTROLLER
+  
+  /* The RoboGaia encoder shield */
+  //#define ROBOGAIA
+  
+  /* The RoboGaia 3-axis encoder shield */
+  #define ROBOGAIA_3_AXIS
+  
+  /* Encoders directly attached to Arduino board */
+  //#define ARDUINO_ENC_COUNTER
 #endif
 
 //#define USE_SERVOS  // Enable/disable use of old PWM servo support as defined in servos.h
@@ -129,6 +140,13 @@
   long lastMotorCommand = AUTO_STOP_INTERVAL;
 #endif
 
+#ifdef USE_IMU
+  #include "imu.h"
+
+  #define ADAFRUIT_9DOF
+
+#endif
+
 /* Variable initialization */
 #define BAUDRATE     57600
 
@@ -169,9 +187,11 @@ int runCommand() {
   int pid_args[4];
   arg1 = atoi(argv1);
   arg2 = atoi(argv2);
+  String output;
 
   switch(cmd) {
   case GET_BAUDRATE:
+    Serial.print(" ");
     Serial.println(BAUDRATE);
     break;
   case ANALOG_READ:
@@ -197,6 +217,34 @@ int runCommand() {
   case PING:
     Serial.println(Ping(arg1));
     break;
+#ifdef USE_IMU
+  case READ_IMU:
+    imu_data = readIMU();
+    Serial.print(imu_data.ax);
+    Serial.print(" ");
+    Serial.print(imu_data.ay);
+    Serial.print(" ");
+    Serial.print(imu_data.az);
+    Serial.print(" ");
+    Serial.print(imu_data.gx);
+    Serial.print(" ");
+    Serial.print(imu_data.gy);
+    Serial.print(" ");
+    Serial.print(imu_data.gz);
+    Serial.print(" ");
+    Serial.print(imu_data.mx);
+    Serial.print(" ");
+    Serial.print(imu_data.my);
+    Serial.print(" ");
+    Serial.print(imu_data.mz);
+    Serial.print(" ");
+    Serial.print(imu_data.roll);
+    Serial.print(" ");
+    Serial.print(imu_data.pitch);
+    Serial.print(" ");
+    Serial.println(imu_data.uh);
+    break;
+#endif
 #ifdef USE_SERVOS
   case SERVO_WRITE:
     servos[arg1].setTargetPosition(arg2);
@@ -300,6 +348,10 @@ void setup() {
     initEncoders();
     initMotorController();
     resetPID();
+  #endif
+
+  #ifdef USE_IMU
+    initIMU();
   #endif
 
   /* Attach servos if used */
