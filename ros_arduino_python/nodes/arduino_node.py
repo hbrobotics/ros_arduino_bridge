@@ -227,6 +227,7 @@ class ArduinoROS():
                         break
                     except:
                         r.sleep()
+                        continue
 
             for sensor in self.mySensors:
                 if sensor.rate != 0:
