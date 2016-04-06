@@ -47,7 +47,7 @@
 
 #define USE_BASE      // Enable/disable the base controller code
 
-//#define USE_IMU       // Enable/disable use of an IMU
+#define USE_IMU       // Enable/disable use of an IMU
 
 /* Define the motor controller and encoder library you are using */
 #ifdef USE_BASE
@@ -191,7 +191,7 @@ int runCommand() {
 
   switch(cmd) {
   case GET_BAUDRATE:
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.println(BAUDRATE);
     break;
   case ANALOG_READ:
@@ -202,17 +202,17 @@ int runCommand() {
     break;
   case ANALOG_WRITE:
     analogWrite(arg1, arg2);
-    Serial.println("OK"); 
+    Serial.println(F("OK")); 
     break;
   case DIGITAL_WRITE:
     if (arg2 == 0) digitalWrite(arg1, LOW);
     else if (arg2 == 1) digitalWrite(arg1, HIGH);
-    Serial.println("OK"); 
+    Serial.println(F("OK")); 
     break;
   case PIN_MODE:
     if (arg2 == 0) pinMode(arg1, INPUT);
     else if (arg2 == 1) pinMode(arg1, OUTPUT);
-    Serial.println("OK");
+    Serial.println(F("OK"));
     break;
   case PING:
     Serial.println(Ping(arg1));
@@ -221,34 +221,34 @@ int runCommand() {
   case READ_IMU:
     imu_data = readIMU();
     Serial.print(imu_data.ax);
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(imu_data.ay);
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(imu_data.az);
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(imu_data.gx);
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(imu_data.gy);
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(imu_data.gz);
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(imu_data.mx);
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(imu_data.my);
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(imu_data.mz);
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(imu_data.roll);
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(imu_data.pitch);
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.println(imu_data.uh);
     break;
 #endif
 #ifdef USE_SERVOS
   case SERVO_WRITE:
     servos[arg1].setTargetPosition(arg2);
-    Serial.println("OK");
+    Serial.println(F("OK"));
     break;
   case SERVO_READ:
     Serial.println(servos[arg1].getServo().read());
@@ -261,25 +261,25 @@ int runCommand() {
       myServos[arg1].enable();
       nServos++;
     }
-    Serial.println("OK");
+    Serial.println(F("OK"));
     break;
   case SERVO_WRITE:
     if (myServos[arg1].isEnabled()) {
       myServos[arg1].setTargetPosition(arg2);
     }
-    Serial.println("OK");
+    Serial.println(F("OK"));
     break;
   case SERVO_READ:
     Serial.println(myServos[arg1].getCurrentPosition());
     break;
   case SERVO_DELAY:
     myServos[arg1].setServoDelay(arg1, arg2);
-    Serial.println("OK");
+    Serial.println(F("OK"));
     break;
   case DETACH_SERVO:
     myServos[arg1].getServo().detach();
     myServos[arg1].disable();
-    Serial.println("OK");
+    Serial.println(F("OK"));
     break;
   case ATTACH_SERVO:
     if (!haveServo(arg1)) {
@@ -291,7 +291,7 @@ int runCommand() {
       myServos[arg1].getServo().attach(arg1);  
     }
     myServos[arg1].enable();
-    Serial.println("OK");
+    Serial.println(F("OK"));
     break;
 
 #endif
@@ -299,13 +299,13 @@ int runCommand() {
 #ifdef USE_BASE
   case READ_ENCODERS:
     Serial.print(readEncoder(LEFT));
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.println(readEncoder(RIGHT));
     break;
    case RESET_ENCODERS:
     resetEncoders();
     resetPID();
-    Serial.println("OK");
+    Serial.println(F("OK"));
     break;
   case MOTOR_SPEEDS:
     /* Reset the auto stop timer */
@@ -317,7 +317,7 @@ int runCommand() {
     else moving = 1;
     leftPID.TargetTicksPerFrame = arg1;
     rightPID.TargetTicksPerFrame = arg2;
-    Serial.println("OK"); 
+    Serial.println(F("OK")); 
     break;
   case UPDATE_PID:
     i = 0;
@@ -329,11 +329,11 @@ int runCommand() {
     Kd = pid_args[1];
     Ki = pid_args[2];
     Ko = pid_args[3];
-    Serial.println("OK");
+    Serial.println(F("OK"));
     break;
 #endif
   default:
-    Serial.println("Invalid Command");
+    Serial.println(F("Invalid Command"));
     break;
   }
 }
