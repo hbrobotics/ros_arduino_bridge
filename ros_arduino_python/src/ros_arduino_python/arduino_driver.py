@@ -112,17 +112,37 @@ class Arduino:
         '''
         c = ''
         value = ''
-        attempts = 0
+        start = time.time()
+        
         while c != '\r':
             c = self.serial_port.read(1)
             value += c
-            attempts += 1
-            if attempts * self.interCharTimeout > timeout:
+            if time.time() - start > timeout:
                 return None
 
         value = value.strip('\r')
 
         return value
+
+#     def recv(self, timeout=0.5):
+#         timeout = min(timeout, self.timeout)
+#         ''' This command should not be used on its own: it is called by the execute commands   
+#             below in a thread safe manner.  Note: we use read() instead of readline() since
+#             readline() tends to return garbage characters from the Arduino
+#         '''
+#         c = ''
+#         value = ''
+#         attempts = 0
+#         while c != '\r':
+#             c = self.serial_port.read(1)
+#             value += c
+#             attempts += 1
+#             if attempts * self.interCharTimeout > timeout:
+#                 return None
+# 
+#         value = value.strip('\r')
+# 
+#         return value
             
     def recv_ack(self):
         ''' This command should not be used on its own: it is called by the execute commands
