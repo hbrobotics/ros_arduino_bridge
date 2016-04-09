@@ -45,7 +45,6 @@ class Arduino:
         self.timeout = timeout
         self.encoder_count = 0
         self.writeTimeout = timeout
-        self.interCharTimeout = timeout / 30.
     
         # Keep things thread safe
         self.mutex = thread.allocate_lock()
@@ -105,44 +104,22 @@ class Arduino:
         self.serial_port.write(cmd + '\r')
 
     def recv(self, timeout=0.5):
-        timeout = min(timeout, self.timeout)
         ''' This command should not be used on its own: it is called by the execute commands   
             below in a thread safe manner.  Note: we use read() instead of readline() since
             readline() tends to return garbage characters from the Arduino
         '''
         c = ''
         value = ''
-        start = time.time()
-        
+
         while c != '\r':
-            c = self.serial_port.read(1)
-            value += c
-            if time.time() - start > timeout:
+            c = self.serial_port.read()
+            if c == '':
                 return None
+            value += c
 
         value = value.strip('\r')
 
         return value
-
-#     def recv(self, timeout=0.5):
-#         timeout = min(timeout, self.timeout)
-#         ''' This command should not be used on its own: it is called by the execute commands   
-#             below in a thread safe manner.  Note: we use read() instead of readline() since
-#             readline() tends to return garbage characters from the Arduino
-#         '''
-#         c = ''
-#         value = ''
-#         attempts = 0
-#         while c != '\r':
-#             c = self.serial_port.read(1)
-#             value += c
-#             attempts += 1
-#             if attempts * self.interCharTimeout > timeout:
-#                 return None
-# 
-#         value = value.strip('\r')
-# 
-#         return value
             
     def recv_ack(self):
         ''' This command should not be used on its own: it is called by the execute commands
@@ -165,31 +142,25 @@ class Arduino:
         ''' This command should not be used on its own: it is called by the execute commands
             below in a thread safe manner.
         '''
-        try:
-            values = self.recv(self.timeout * self.N_ANALOG_PORTS).split()
-            return map(int, values)
-        except:
-            return []
+        return self.recv(self.timeout).split()
 
-    def execute(self, cmd):
-        ''' Thread safe execution of "cmd" on the Arduino returning a single integer value.
+    def execute(self, cmd, max_attempts=5):
+        ''' Thread safe execution of "cmd" on the Arduino returning a single value.
         '''
         self.mutex.acquire()
         
-        try:
-            self.serial_port.flushInput()
-        except:
-            pass
+        self.serial_port.flushInput()
+        self.serial_port.flushOutput()
         
-        ntries = 1
         attempts = 0
         
         try:
             self.serial_port.write(cmd + '\r')
             value = self.recv(self.timeout)
-            while attempts < ntries and (value == '' or value == 'Invalid Command' or value == None):
+            while attempts < max_attempts and (value == '' or value == 'Invalid Command' or value == None):
                 try:
                     self.serial_port.flushInput()
+                    self.serial_port.flushOutput()
                     self.serial_port.write(cmd + '\r')
                     value = self.recv(self.timeout)
                 except:
@@ -201,27 +172,26 @@ class Arduino:
             value = None
         
         self.mutex.release()
-        return int(value)
 
-    def execute_array(self, cmd):
+        return value
+
+    def execute_array(self, cmd, max_attempts=5):
         ''' Thread safe execution of "cmd" on the Arduino returning an array.
         '''
         self.mutex.acquire()
         
-        try:
-            self.serial_port.flushInput()
-        except:
-            pass
+        self.serial_port.flushInput()
+        self.serial_port.flushOutput()
         
-        ntries = 1
         attempts = 0
         
         try:
             self.serial_port.write(cmd + '\r')
             values = self.recv_array()
-            while attempts < ntries and (values == '' or values == 'Invalid Command' or values == [] or values == None):
+            while attempts < max_attempts and (values == '' or values == 'Invalid Command' or values == [] or values == None):
                 try:
                     self.serial_port.flushInput()
+                    self.serial_port.flushOutput()
                     self.serial_port.write(cmd + '\r')
                     values = self.recv_array()
                 except:
@@ -232,13 +202,9 @@ class Arduino:
             print "Exception executing command: " + cmd
             raise SerialException
             return []
-        
-        try:
-            values = map(int, values)
-        except:
-            values = []
 
         self.mutex.release()
+
         return values
         
     def execute_ack(self, cmd):
@@ -285,7 +251,7 @@ class Arduino:
         ''' Get the current baud rate on the serial port.
         '''
         try:
-            return int(self.execute('b'))
+            return int(self.execute('b', max_attempts=5))
         except:
             print "Failed to determine baud rate of Arduino so aborting!"
             os._exit(1)
@@ -297,13 +263,13 @@ class Arduino:
             raise SerialException
             return None
         else:
-            return values
+            return map(int, values)
 
     def reset_encoders(self):
         ''' Reset the encoder counts to 0
         '''
         return self.execute_ack('r')
-    
+
     def drive(self, right, left):
         ''' Speeds are given in encoder ticks per PID interval
         '''
@@ -329,13 +295,13 @@ class Arduino:
         return self.execute_ack('c A%d %d' %(pin, mode))
             
     def analog_read(self, pin):
-        return self.execute('a %d' %pin)
+        return int(self.execute('a %d' %pin))
     
     def analog_write(self, pin, value):
         return self.execute_ack('x %d %d' %(pin, value))
     
     def digital_read(self, pin):
-        return self.execute('d %d' %pin)
+        return int(self.execute('d %d' %pin))
     
     def digital_write(self, pin, value):
         return self.execute_ack('w %d %d' %(pin, value))
