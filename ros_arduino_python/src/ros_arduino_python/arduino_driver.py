@@ -22,7 +22,7 @@
 """
 
 import thread
-from math import pi as PI, degrees, radians
+from math import pi as PI
 import os
 import time
 import sys, traceback
@@ -30,11 +30,6 @@ from serial.serialutil import SerialException
 import serial
 
 class Arduino:
-    ''' Configuration Parameters
-    '''    
-    N_ANALOG_PORTS = 6
-    N_DIGITAL_PORTS = 12
-    
     def __init__(self, port="/dev/ttyUSB0", baudrate=57600, timeout=0.5):
         
         self.PID_RATE = 30 # Do not change this!  It is a fixed property of the Arduino PID controller.
@@ -48,13 +43,7 @@ class Arduino:
     
         # Keep things thread safe
         self.mutex = thread.allocate_lock()
-            
-        # An array to cache analog sensor readings
-        self.analog_sensor_cache = [None] * self.N_ANALOG_PORTS
-        
-        # An array to cache digital sensor readings
-        self.digital_sensor_cache = [None] * self.N_DIGITAL_PORTS
-    
+
     def connect(self):
         try:
             print "Connecting to Arduino on port", self.port, "..."
@@ -207,25 +196,23 @@ class Arduino:
 
         return values
         
-    def execute_ack(self, cmd):
+    def execute_ack(self, cmd, max_attempts=5):
         ''' Thread safe execution of "cmd" on the Arduino returning True if response is ACK.
         '''
         self.mutex.acquire()
         
-        try:
-            self.serial_port.flushInput()
-        except:
-            pass
+        self.serial_port.flushInput()
+        self.serial_port.flushOutput()
         
-        ntries = 1
         attempts = 0
         
         try:
             self.serial_port.write(cmd + '\r')
             ack = self.recv(self.timeout)
-            while attempts < ntries and (ack == '' or ack == 'Invalid Command' or ack == None):
+            while attempts < max_attempts and (ack == '' or ack == 'Invalid Command' or ack == None):
                 try:
                     self.serial_port.flushInput()
+                    self.serial_port.flushOutput()
                     self.serial_port.write(cmd + '\r')
                     ack = self.recv(self.timeout)
                 except:
@@ -269,6 +256,24 @@ class Arduino:
         ''' Reset the encoder counts to 0
         '''
         return self.execute_ack('r')
+
+    def get_imu_data(self):
+        '''
+        IMU data is assumed to be returned in the following order:
+    
+        [ax, ay, az, gx, gy, gz, mx, my, mz, roll, pitch, uh]
+    
+        where a stands for accelerometer, g for gyroscope and m for magnetometer.
+        The last value uh stands for "unified heading" that some IMU's compute
+        from both gyroscope and compass data.
+        '''
+        values = self.execute_array('i')
+        if len(values) != 12:
+            print "IMU data incomplete!"
+            raise SerialException
+            return None
+        else:
+            return map(float, values)
 
     def drive(self, right, left):
         ''' Speeds are given in encoder ticks per PID interval
