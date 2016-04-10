@@ -92,27 +92,34 @@ class Arduino:
         '''
         self.serial_port.write(cmd + '\r')
 
-    def execute(self, cmd, max_attempts=5):
+    def execute(self, cmd, max_attempts=3):
         ''' Thread safe execution of "cmd" on the Arduino returning a single value.
         '''
         self.mutex.acquire()
+
+        attempts = 1
 
         self.serial_port.write(cmd + '\r')
         
         value = self.serial_port.readline().strip('\n')
         
+        while len(value) == 0 and attempts < max_attempts:
+            self.serial_port.write(cmd + '\r')
+            value = self.serial_port.readline().strip('\n')
+            attempts += 1
+
         self.mutex.release()
 
         return value
 
-    def execute_array(self, cmd, max_attempts=5):
+    def execute_array(self, cmd, max_attempts=3):
         ''' Thread safe execution of "cmd" on the Arduino returning an array.
         '''
         values = self.execute(cmd, max_attempts).split()
 
         return values
 
-    def execute_ack(self, cmd, max_attempts=5):
+    def execute_ack(self, cmd, max_attempts=3):
         ''' Thread safe execution of "cmd" on the Arduino returning True if response is ACK.
         '''
         ack = self.execute(cmd, max_attempts)
@@ -136,9 +143,8 @@ class Arduino:
 
     def get_encoder_counts(self):
         values = self.execute_array('e')
+
         if len(values) != 2:
-            print "Encoder count was not 2"
-            raise SerialException
             return None
         else:
             return map(int, values)
@@ -159,8 +165,8 @@ class Arduino:
         from both gyroscope and compass data.
         '''
         values = self.execute_array('i')
+
         if len(values) != 12:
-            print "IMU data incomplete!"
             return None
         else:
             return map(float, values)
