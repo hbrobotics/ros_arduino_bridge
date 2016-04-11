@@ -143,6 +143,7 @@
 #ifdef USE_IMU
   #include "imu.h"
 
+  // The only IMU currently supported is the Adafruit 9-DOF IMU
   #define ADAFRUIT_9DOF
 
 #endif
@@ -161,8 +162,8 @@ char chr;
 char cmd;
 
 // Character arrays to hold the first and second arguments
-char argv1[16];
-char argv2[16];
+char argv1[32];
+char argv2[32];
 
 // The arguments converted to integers
 long arg1;
@@ -220,6 +221,9 @@ int runCommand() {
 #ifdef USE_IMU
   case READ_IMU:
     imu_data = readIMU();
+    /* Send the IMU data base in the following order
+     * [ax, ay, az, gx, gy, gz, mx, my, mz, roll, pitch, ch]
+     */
     Serial.print(imu_data.ax);
     Serial.print(F(" "));
     Serial.print(imu_data.ay);
@@ -242,7 +246,7 @@ int runCommand() {
     Serial.print(F(" "));
     Serial.print(imu_data.pitch);
     Serial.print(F(" "));
-    Serial.println(imu_data.uh);
+    Serial.println(imu_data.ch);
     break;
 #endif
 #ifdef USE_SERVOS
@@ -322,8 +326,8 @@ int runCommand() {
   case UPDATE_PID:
     i = 0;
     while ((str = strtok_r(p, ":", &p)) != '\0') {
-       pid_args[i] = atoi(str);
-       i++;
+      pid_args[i] = atoi(str);
+      i++;
     }
     Kp = pid_args[0];
     Kd = pid_args[1];
