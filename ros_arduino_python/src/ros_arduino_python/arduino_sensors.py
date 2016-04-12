@@ -20,10 +20,11 @@
 """
 
 import rospy
-from sensor_msgs.msg import Range
+from sensor_msgs.msg import Range, Imu
 from ros_arduino_msgs.msg import *
 from ros_arduino_msgs.srv import *
-from math import pow
+from math import pow, radians
+from tf.transformations import quaternion_from_euler
 
 LOW = 0
 HIGH = 1
@@ -38,6 +39,7 @@ class MessageType:
     FLOAT = 3
     INT = 4
     BOOL = 5
+    IMU = 6
     
 class Sensor(object):
     def __init__(self, device, name, pin=None, rate=0, direction="input", frame_id="base_link", **kwargs):
@@ -58,25 +60,22 @@ class Sensor(object):
         now = rospy.Time.now()
         if now > self.t_next:
             if self.direction == "input":
-                try:
-                    self.value = self.read_value()
-                except:
-                    return
+                self.value = self.read_value()
             else:
-                try:
-                    self.ack = self.write_value()
-                except:
-                    return          
+                self.ack = self.write_value()
     
             # For range sensors, assign the value to the range message field
             if self.message_type == MessageType.RANGE:
                 self.msg.range = self.value
-            else:
+            elif self.message_type != MessageType.IMU:
                 self.msg.value = self.value
 
             # Add a timestamp and publish the message
             self.msg.header.stamp = rospy.Time.now()
-            self.pub.publish(self.msg)
+            try:
+                self.pub.publish(self.msg)
+            except:
+                rospy.logerr("Invalid value read from sensor: " + str(self.name))
             
             self.t_next = now + self.t_delta
     
@@ -286,6 +285,64 @@ class GP2D12(IRSensor):
         
         return distance
     
+class IMU(Sensor):
+    def __init__(self,*args, **kwargs):
+        super(IMU, self).__init__(*args, **kwargs)
+
+        self.message_type = MessageType.IMU
+
+        self.rpy = None
+
+        self.msg = Imu()
+        self.msg.header.frame_id = self.frame_id
+
+        self.msg.orientation_covariance = [1e6, 0, 0, 0, 1e6, 0, 0, 0, 1e-6]
+        self.msg.angular_velocity_covariance = [1e6, 0, 0, 0, 1e6, 0, 0, 0, 1e-6]
+        self.msg.linear_acceleration_covariance = [1e-6, 0, 0, 0, 1e6, 0, 0, 0, 1e6]
+
+        # Create the publisher
+        if self.rate != 0:
+            self.pub = rospy.Publisher("~sensor/" + self.name, Imu, queue_size=5)
+
+    def read_value(self):
+        '''
+        IMU data is assumed to be returned in the following order:
+
+        [ax, ay, az, gx, gy, gz, mx, my, mz, roll, pitch, ch]
+
+        where a stands for accelerometer, g for gyroscope and m for magnetometer.
+        The last value uh stands for "unified heading" that some IMU's compute 
+        from both gyroscope and compass data.
+        
+        '''
+        data  = self.device.get_imu_data()
+
+        try:
+            ax, ay, az, gx, gy, gz, mx, my, mz, roll, pitch, ch = data
+        except:
+            rospy.logerr("Invalid value read from sensor: " + str(self.name))
+            return None
+
+        roll = radians(roll)
+        pitch = -radians(pitch)
+
+        self.msg.linear_acceleration.x = radians(ax)
+        self.msg.linear_acceleration.y = radians(ay)
+        self.msg.linear_acceleration.z = radians(az)
+
+        self.msg.angular_velocity.x = radians(gx)
+        self.msg.angular_velocity.y = radians(gy)
+        self.msg.angular_velocity.z = radians(gz)
+
+        if ch != -999:
+            yaw = -radians(uh)
+        else:
+            yaw = -radians(mz)
+
+        (self.msg.orientation.x, self.msg.orientation.y, self.msg.orientation.z, self.msg.orientation.w) = quaternion_from_euler(roll, pitch, yaw)
+
+        return data
+
 class PololuMotorCurrent(AnalogFloatSensor):
     def __init__(self, *args, **kwargs):
         super(PololuMotorCurrent, self).__init__(*args, **kwargs)

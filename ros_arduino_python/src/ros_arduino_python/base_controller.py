@@ -39,6 +39,8 @@ class BaseController:
         self.timeout = rospy.get_param("~base_controller_timeout", 1.0)
         self.odom_linear_scale_correction = rospy.get_param("~odom_linear_scale_correction", 1.0)
         self.odom_angular_scale_correction = rospy.get_param("~odom_angular_scale_correction", 1.0)
+        self.use_imu_heading = rospy.get_param("~use_imu_heading", False)
+        self.publish_odom_base_transform = rospy.get_param("~publish_odom_base_transform", True)
         self.stopped = False
                  
         pid_params = dict()
@@ -118,6 +120,7 @@ class BaseController:
         self.Ko = pid_params['Ko']
         
         self.arduino.update_pid(self.Kp, self.Kd, self.Ki, self.Ko)
+        rospy.loginfo("PID parameters update to: Kp=%d, Kd=%d, Ki=%d, Ko=%d" %(self.Kp, self.Kd, self.Ki, self.Ko))
 
     def poll(self):
         now = rospy.Time.now()
@@ -166,13 +169,14 @@ class BaseController:
             quaternion.w = cos(self.th / 2.0)
     
             # Create the odometry transform frame broadcaster.
-            self.odomBroadcaster.sendTransform(
-                (self.x, self.y, 0), 
-                (quaternion.x, quaternion.y, quaternion.z, quaternion.w),
-                rospy.Time.now(),
-                self.base_frame,
-                "odom"
-                )
+            if self.publish_odom_base_transform:
+                self.odomBroadcaster.sendTransform(
+                    (self.x, self.y, 0), 
+                    (quaternion.x, quaternion.y, quaternion.z, quaternion.w),
+                    rospy.Time.now(),
+                    self.base_frame,
+                    "odom"
+                    )
     
             odom = Odometry()
             odom.header.frame_id = "odom"
@@ -198,9 +202,9 @@ class BaseController:
             odom.pose.covariance[7]  = 0.1
             odom.pose.covariance[35] = 0.05 if self.use_imu_heading else 0.2
             
-            odom.pose.covariance[14] = float_info.max  # set a non-zero covariance on unused
-            odom.pose.covariance[21] = float_info.max  # dimensions (z, pitch and roll); this
-            odom.pose.covariance[28] = float_info.max  # is a requirement of robot_pose_ekf
+            odom.pose.covariance[14] = 1e6  # set a non-zero covariance on unused
+            odom.pose.covariance[21] = 1e6  # dimensions (z, pitch and roll); this
+            odom.pose.covariance[28] = 1e6  # is a requirement of robot_pose_ekf
 
             self.odomPub.publish(odom)
             
