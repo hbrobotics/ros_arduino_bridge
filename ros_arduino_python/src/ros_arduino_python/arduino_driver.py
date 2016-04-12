@@ -129,7 +129,6 @@ class Arduino:
     def update_pid(self, Kp, Kd, Ki, Ko):
         ''' Set the PID parameters on the Arduino
         '''
-        print "Updating PID parameters"
         cmd = 'u ' + str(Kp) + ':' + str(Kd) + ':' + str(Ki) + ':' + str(Ko)
         self.execute_ack(cmd)                          
 
@@ -158,11 +157,11 @@ class Arduino:
         '''
         IMU data is assumed to be returned in the following order:
     
-        [ax, ay, az, gx, gy, gz, mx, my, mz, roll, pitch, uh]
+        [ax, ay, az, gx, gy, gz, mx, my, mz, roll, pitch, ch]
     
         where a stands for accelerometer, g for gyroscope and m for magnetometer.
-        The last value uh stands for "unified heading" that some IMU's compute
-        from both gyroscope and compass data.
+        The last value ch stands for "compensated heading" that some IMU's can 
+        compute to compensate magnetic heading from the current roll and pitch.
         '''
         values = self.execute_array('i')
 
