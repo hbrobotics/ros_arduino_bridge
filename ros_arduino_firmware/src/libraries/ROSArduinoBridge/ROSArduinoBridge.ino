@@ -316,6 +316,7 @@ int runCommand() {
     lastMotorCommand = millis();
     if (arg1 == 0 && arg2 == 0) {
       setMotorSpeeds(0, 0);
+      resetPID();
       moving = 0;
     }
     else moving = 1;

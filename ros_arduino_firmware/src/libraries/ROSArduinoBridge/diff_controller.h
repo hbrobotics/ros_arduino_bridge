@@ -100,7 +100,7 @@ void doPID(SetPointInfo * p) {
   /*
   * allow turning changes, see http://brettbeauregard.com/blog/2011/04/improving-the-beginner%E2%80%99s-pid-tuning-changes/
   */
-    p->ITerm += Ki * Perror;
+  p->ITerm += Ki * Perror;
 
   p->output = output;
   p->PrevInput = input;
