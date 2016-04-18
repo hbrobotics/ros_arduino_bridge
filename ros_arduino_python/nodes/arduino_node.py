@@ -23,6 +23,9 @@ import rospy
 from ros_arduino_python.arduino_driver import Arduino
 from ros_arduino_python.arduino_sensors import *
 from ros_arduino_msgs.srv import *
+from dynamic_reconfigure.server import Server
+import dynamic_reconfigure.client
+from ros_arduino_python.cfg import ROSArduinoBridgeConfig
 from ros_arduino_python.base_controller import BaseController
 from ros_arduino_python.servo_controller import Servo, ServoController
 #from ros_arduino_python.follow_controller import FollowController
@@ -37,7 +40,7 @@ from math import radians
 
 class ArduinoROS():
     def __init__(self):
-        rospy.init_node('Arduino', log_level=rospy.INFO)
+        rospy.init_node('arduino', log_level=rospy.DEBUG)
                 
         # Cleanup when termniating the node
         rospy.on_shutdown(self.shutdown)
@@ -111,23 +114,32 @@ class ArduinoROS():
         # A service to reset the odometry values to 0
         rospy.Service('~reset_odometry', Empty, self.ResetOdometryHandler)
 
+        # A service to update the PID parameters Kp, Kd, Ki, and Ko
+        rospy.Service('~update_pid', UpdatePID, self.UpdatePIDHandler)
+
+        # Fire up the dynamic_reconfigure server
+        dyn_server = Server(ROSArduinoBridgeConfig, self.dynamic_reconfigure_server_callback)
+
+        # Connect to the dynamic_reconfigure client
+        dyn_client = dynamic_reconfigure.client.Client("arduino", timeout=5)
+
         # Initialize the device
         self.device = Arduino(self.port, self.baud, self.timeout)
-        
+
         # Make the connection
         self.device.connect()
-        
+
         rospy.loginfo("Connected to Arduino on port " + self.port + " at " + str(self.baud) + " baud")
      
         # Reserve a thread lock
         mutex = thread.allocate_lock()
 
         # Initialize any sensors
-        self.mySensors = list()
-        
+        self.sensors = list()
+
         # Read in the sensors parameter dictionary
         sensor_params = rospy.get_param("~sensors", dict({}))
-        
+
         # Initialize individual sensors appropriately
         for name, params in sensor_params.iteritems():
             if params['type'].lower() == 'Ping'.lower():
@@ -144,12 +156,14 @@ class ArduinoROS():
                 sensor = PhidgetsVoltage(self.device, name, **params)
             elif params['type'].lower() == 'PhidgetsCurrent'.lower():
                 sensor = PhidgetsCurrent(self.device, name, **params)
+            elif params['type'].lower() == 'IMU'.lower():
+                sensor = IMU(self.device, name, **params)
                 
 #                if params['type'].lower() == 'MaxEZ1'.lower():
 #                    self.sensors[len(self.sensors)]['trigger_pin'] = params['trigger_pin']
 #                    self.sensors[len(self.sensors)]['output_pin'] = params['output_pin']
 
-            self.mySensors.append(sensor)
+            self.sensors.append(sensor)
             
             if params['rate'] != None and params['rate'] != 0:
                 rospy.loginfo(name + " " + str(params) + " published on topic " + rospy.get_name() + "/sensor/" + name)
@@ -208,7 +222,7 @@ class ArduinoROS():
 
         # Initialize the base controller if used
         if self.use_base_controller:
-            self.myBaseController = BaseController(self.device, self.base_frame)
+            self.base_controller = BaseController(self.device, self.base_frame)
             
         print "\n==> ROS Arduino Bridge ready for action!"
     
@@ -218,7 +232,7 @@ class ArduinoROS():
             try:
                 self.device.serial_port.inWaiting()
             except IOError:
-                rospy.loginfo("Lost serial connection...")
+                rospy.loginfo("Lost serial connection. Waiting to reconnect...")
                 self.device.close()
                 while True:
                     try:
@@ -229,7 +243,7 @@ class ArduinoROS():
                         r.sleep()
                         continue
 
-            for sensor in self.mySensors:
+            for sensor in self.sensors:
                 if sensor.rate != 0:
                     mutex.acquire()
                     sensor.poll()
@@ -237,7 +251,7 @@ class ArduinoROS():
                     
             if self.use_base_controller:
                 mutex.acquire()
-                self.myBaseController.poll()
+                self.base_controller.poll()
                 mutex.release()
                 
             if self.have_joints:
@@ -253,9 +267,10 @@ class ArduinoROS():
                 msg = SensorState()
                 msg.header.frame_id = self.base_frame
                 msg.header.stamp = now
-                for i in range(len(self.mySensors)):
-                    msg.name.append(self.mySensors[i].name)
-                    msg.value.append(self.mySensors[i].value)
+                for i in range(len(self.sensors)):
+                    if self.sensors[i].message_type != MessageType.IMU:
+                        msg.name.append(self.sensors[i].name)
+                        msg.value.append(self.sensors[i].value)
                 try:
                     self.sensorStatePub.publish(msg)
                 except:
@@ -326,10 +341,45 @@ class ArduinoROS():
 
     def ResetOdometryHandler(self, req):
         if self.use_base_controller:
-            self.myBaseController.reset_odometry()
+            self.base_controller.reset_odometry()
         else:
             rospy.logwarn("Not using base controller!")
         return EmptyResponse()
+
+    def UpdatePIDHandler(self, req):
+        if self.use_base_controller:
+           self.device.update_pid(req.Kp, req.Kd, req.Ki, req.Ko)
+           rospy.loginfo("Updating PID parameters: Kp=%0.3f, Kd=%0.3f, Ki=%0.3f, Ko=%0.3f" %(req.Kp, req.Kd, req.Ki, req.Ko))
+        else:
+            rospy.logwarn("Not using base controller!")
+        return UpdatePIDResponse()
+
+    def dynamic_reconfigure_server_callback(self, config, level):
+        if self.use_base_controller:
+            try:
+                if self.base_controller.Kp != config['Kp']:
+                    self.base_controller.Kp = config['Kp']
+
+                if self.base_controller.Kd != config['Kd']:
+                    self.base_controller.Kd = config['Kd']
+
+                if self.base_controller.Ki != config['Ki']:
+                    self.base_controller.Ki = config['Ki']
+
+                if self.base_controller.Ko != config['Ko']:
+                    self.base_controller.Ko = config['Ko']
+
+                if self.base_controller.accel_limit != config['accel_limit']:
+                    self.base_controller.accel_limit = config['accel_limit']
+                    self.base_controller.max_accel = self.base_controller.accel_limit * self.base_controller.ticks_per_meter / self.base_controller.rate
+
+                self.device.update_pid(self.base_controller.Kp, self.base_controller.Kd, self.base_controller.Ki, self.base_controller.Ko)
+
+                rospy.loginfo("Updating PID parameters: Kp=%0.2f, Kd=%0.2f, Ki=%0.2f, Ko=%0.2f, accel_limit=%0.2f" %(self.base_controller.Kp, self.base_controller.Kd, self.base_controller.Ki, self.base_controller.Ko, self.base_controller.accel_limit))
+            except Exception as e:
+                print e
+
+        return config
         
     def shutdown(self):
         rospy.loginfo("Shutting down Arduino node...")

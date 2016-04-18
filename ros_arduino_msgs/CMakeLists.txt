@@ -35,6 +35,7 @@ add_service_files(FILES
                   ServoWrite.srv
                   SetSpeed.srv
                   SetServoSpeed.srv
+                  UpdatePID.srv
                  )
 
 generate_messages(   

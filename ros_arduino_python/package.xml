@@ -10,6 +10,8 @@
   <url>http://ros.org/wiki/ros_arduino_python</url>
   
   <buildtool_depend>catkin</buildtool_depend>
+  
+  <build_depend>dynamic_reconfigure</build_depend>
 
   <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
@@ -19,4 +21,6 @@
   <run_depend>tf</run_depend>
   <run_depend>ros_arduino_msgs</run_depend>
   <run_depend>python-serial</run_depend>
+  <run_depend>dynamic_reconfigure</run_depend>
+
 </package>
