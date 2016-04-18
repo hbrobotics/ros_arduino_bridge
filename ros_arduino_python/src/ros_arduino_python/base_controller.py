@@ -44,16 +44,16 @@ class BaseController:
         self.stopped = False
                  
         pid_params = dict()
-        pid_params['wheel_diameter'] = rospy.get_param("~wheel_diameter", "") 
+        pid_params['wheel_diameter'] = rospy.get_param("~wheel_diameter", "")
         pid_params['wheel_track'] = rospy.get_param("~wheel_track", "")
-        pid_params['encoder_resolution'] = rospy.get_param("~encoder_resolution", "") 
+        pid_params['encoder_resolution'] = rospy.get_param("~encoder_resolution", "")
         pid_params['gear_reduction'] = rospy.get_param("~gear_reduction", 1.0)
         pid_params['Kp'] = rospy.get_param("~Kp", 20)
         pid_params['Kd'] = rospy.get_param("~Kd", 12)
         pid_params['Ki'] = rospy.get_param("~Ki", 0)
         pid_params['Ko'] = rospy.get_param("~Ko", 50)
         
-        self.accel_limit = rospy.get_param('~accel_limit', 0.1)
+        self.accel_limit = rospy.get_param('~accel_limit', 1.0)
         self.motors_reversed = rospy.get_param("~motors_reversed", False)
         
         # Set up PID parameters and check for missing values
@@ -149,7 +149,7 @@ class BaseController:
             self.enc_left = left_enc
             
             dxy_ave = self.odom_linear_scale_correction * (dright + dleft) / 2.0
-            dth = self.odom_angular_scale_correction * (dright - dleft) / self.wheel_track
+            dth = self.odom_angular_scale_correction * (dright - dleft) / float(self.wheel_track)
             vxy = dxy_ave / dt
             vth = dth / dt
                 
