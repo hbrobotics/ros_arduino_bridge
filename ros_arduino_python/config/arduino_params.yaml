@@ -10,11 +10,20 @@ timeout: 0.1
 rate: 50
 sensorstate_rate: 10
 
+# Are we using the base controller code
 use_base_controller: False
+
+# Rate to publish odom info
 base_controller_rate: 10
 
 # For a robot that uses base_footprint, change base_frame to base_footprint
 base_frame: base_link
+
+# Are we also using an IMU for heading data
+use_imu_heading: False
+
+# Publish the odom->base_link transform?
+publish_odom_base_transform: True
 
 # === Robot drivetrain parameters
 #wheel_diameter: 0.146
@@ -29,6 +38,10 @@ base_frame: base_link
 #Ki: 0
 #Ko: 50
 #accel_limit: 1.0
+
+# == Odometry calibration correction factors
+odom_linear_scale_correction: 1.0
+odom_angular_scale_correction: 1.0
 
 # === Sensor definitions.  Examples only - edit for your robot.
 #     Sensor type can be one of the following:
