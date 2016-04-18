@@ -311,9 +311,8 @@ class IMU(Sensor):
         [ax, ay, az, gx, gy, gz, mx, my, mz, roll, pitch, ch]
 
         where a stands for accelerometer, g for gyroscope and m for magnetometer.
-        The last value uh stands for "unified heading" that some IMU's compute 
-        from both gyroscope and compass data.
-        
+        The last value ch stands for "compensated heading" that some IMU's can 
+        compute to compensate magnetic heading for the current roll and pitch. 
         '''
         data  = self.device.get_imu_data()
 
