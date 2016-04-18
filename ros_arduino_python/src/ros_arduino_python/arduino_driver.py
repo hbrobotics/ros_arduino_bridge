@@ -30,7 +30,7 @@ from serial.serialutil import SerialException
 import serial
 
 class Arduino:
-    def __init__(self, port="/dev/ttyUSB0", baudrate=57600, timeout=0.5):
+    def __init__(self, port="/dev/ttyUSB0", baudrate=57600, timeout=0.5, debug=True):
         
         self.PID_RATE = 30 # Do not change this!  It is a fixed property of the Arduino PID controller.
         self.PID_INTERVAL = 1000 / 30
@@ -40,6 +40,7 @@ class Arduino:
         self.timeout = timeout
         self.encoder_count = 0
         self.writeTimeout = timeout
+        self.debug = debug
     
         # Keep things thread safe
         self.mutex = thread.allocate_lock()
@@ -103,7 +104,11 @@ class Arduino:
         value = self.serial_port.readline().strip('\n')
 
         while len(value) == 0 and attempts < max_attempts:
-            print "Command", cmd, "failed", attempts, "time(s)"
+            if self.debug:
+                print "Command", cmd, "failed", attempts, "time(s)"
+
+            self.serial_port.flushInput()
+            self.serial_port.flushOutput()
             self.serial_port.write(cmd + '\r')
             value = self.serial_port.readline().strip('\n')
             attempts += 1
