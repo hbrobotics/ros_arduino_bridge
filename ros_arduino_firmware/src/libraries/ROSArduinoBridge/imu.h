@@ -10,7 +10,7 @@
     
   where a stands for accelerometer, g for gyroscope and m for magnetometer.
   The last value ch stands for "compensated heading" that some IMU's can 
-  compute to compensate magnetic heading from the current roll and pitch.
+  compute to compensate magnetic heading for the current roll and pitch.
 */
 
 typedef struct imuData_s
