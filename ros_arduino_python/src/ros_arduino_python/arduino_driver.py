@@ -100,10 +100,10 @@ class Arduino:
         attempts = 1
 
         self.serial_port.write(cmd + '\r')
-        
         value = self.serial_port.readline().strip('\n')
-        
+
         while len(value) == 0 and attempts < max_attempts:
+            print "Command", cmd, "failed", attempts, "time(s)"
             self.serial_port.write(cmd + '\r')
             value = self.serial_port.readline().strip('\n')
             attempts += 1
@@ -141,6 +141,8 @@ class Arduino:
             return None
 
     def get_encoder_counts(self):
+        ''' Read the current encoder counts
+        '''
         values = self.execute_array('e')
 
         if len(values) != 2:

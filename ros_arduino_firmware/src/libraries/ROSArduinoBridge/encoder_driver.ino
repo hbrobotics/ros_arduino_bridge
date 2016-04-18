@@ -32,6 +32,12 @@
     if (i == LEFT) return encoders.YAxisReset();
     else return encoders.XAxisReset();
   }
+
+  /* Wrap the encoder reset function */
+  void resetEncoders() {
+    resetEncoder(LEFT);
+    resetEncoder(RIGHT);
+  }
   
 #elif defined(ROBOGAIA_3_AXIS)
   /* Robogaia 3-axis encoder shield */
