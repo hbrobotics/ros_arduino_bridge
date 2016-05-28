@@ -1,6 +1,6 @@
 **UNSTABLE BRANCH**
 
-This branch is under active development and is not likely to work.  Please use the official hydro-devel or indigo-devel branche for ROS Hydro or ROS Indigo, respectively.
+This branch is under active development and is not likely to work.  Please use the official hydro-devel or indigo-devel branch for ROS Hydro or ROS Indigo, respectively.
 
 Table of Contents
 =================
