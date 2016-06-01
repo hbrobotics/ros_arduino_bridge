@@ -45,9 +45,9 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#define USE_BASE      // Enable/disable the base controller code
+//#define USE_BASE      // Enable/disable the base controller code
 
-#define USE_IMU       // Enable/disable use of an IMU
+//#define USE_IMU       // Enable/disable use of an IMU
 
 /* Define the motor controller and encoder library you are using */
 #ifdef USE_BASE
