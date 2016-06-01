@@ -21,16 +21,32 @@
 
 """
 
+import rospy
 import thread
 from math import pi as PI
-import os
-import time
-import sys, traceback
-from serial.serialutil import SerialException
+import os, time, sys, traceback
+from serial.serialutil import SerialException, SerialTimeoutException
 import serial
+from exceptions import Exception
+
+# Possible errors when reading/writing to the Arduino
+class CommandErrorCode:
+    SUCCESS = 0
+    TIMEOUT = 1
+    NOVALUE = 2
+    SERIALEXCEPTION = 3
+
+    ErrorCodeStrings = ['SUCCESS', 'TIMEOUT', 'NOVALUE', 'SERIALEXCEPTION']
+
+# An exception class to handle these errors
+class CommandException(Exception):
+    def __init__(self, code):
+        self.code = code
+    def __str__(self):
+        return repr(self.code)
 
 class Arduino:
-    def __init__(self, port="/dev/ttyUSB0", baudrate=57600, timeout=0.5, debug=True):
+    def __init__(self, port="/dev/ttyUSB0", baudrate=57600, timeout=0.5, debug=False):
         
         self.PID_RATE = 30 # Do not change this!  It is a fixed property of the Arduino PID controller.
         self.PID_INTERVAL = 1000 / 30
@@ -41,41 +57,59 @@ class Arduino:
         self.encoder_count = 0
         self.writeTimeout = timeout
         self.debug = debug
-    
+
         # Keep things thread safe
         self.mutex = thread.allocate_lock()
 
     def connect(self):
         try:
-            print "Connecting to Arduino on port", self.port, "..."
+            rospy.loginfo("Looking for the Arduino on port " + str(self.port) +  " ...")
             
             # The port has to be open once with the default baud rate before opening again for real
             self.serial_port = serial.Serial(port=self.port)
           
             # Needed for Leonardo only
-            while not self.port:
+            while not self.serial_port.isOpen():
                 time.sleep(self.timeout)
 
             # Now open the port with the real settings
             self.serial_port = serial.Serial(port=self.port, baudrate=self.baudrate, timeout=self.timeout, writeTimeout=self.writeTimeout)
 
+            # When an Arduino is first plugged in, it can take time for the serial port to wake up
+            max_attempts = 10
+            attempts = 0
+
+            # Wake up the serial port
+            self.serial_port.write('\r')
+            while attempts < max_attempts and self.serial_port.read() == '':
+                rospy.loginfo("Waking up serial port...")
+                self.serial_port.write('\r')
+                attempts += 1
+                time.sleep(1)
+
             # Test the connection by reading the baudrate
-            test = self.get_baud()
-            if test != self.baudrate:
-                time.sleep(self.timeout)
-                test = self.get_baud()   
-                if test != self.baudrate:
-                    raise SerialException
-            print "Connected at", self.baudrate
-            print "Arduino is ready."
+            attepmpts = 0
+            while self.get_baud() != self.baudrate and attempts < max_attempts:
+                attempts += 1
+                self.serial_port.flushInput()
+                self.serial_port.flushOutput()
+                rospy.loginfo("Connecting...")
+            try:
+                self.serial_port.inWaiting()
+                rospy.loginfo("Connected at " + str(self.baudrate))
+                rospy.loginfo("Arduino is ready.")
+            except IOError:
+                raise SerialException
 
         except SerialException:
-            print "Serial Exception:"
-            print sys.exc_info()
-            print "Traceback follows:"
+            rospy.logerr("Serial Exception:")
+            rospy.logerr(sys.exc_info())
+            rospy.logerr("Traceback follows:")
             traceback.print_exc(file=sys.stdout)
-            print "Cannot connect to Arduino!"
-            os._exit(1)
+            rospy.logerr("Cannot connect to Arduino!  Make sure it is plugged in to your computer.")
+            return False
+
+        return True
 
     def open(self): 
         ''' Open the serial port.
@@ -93,55 +127,79 @@ class Arduino:
         '''
         self.serial_port.write(cmd + '\r')
 
-    def execute(self, cmd, max_attempts=3):
+    def execute(self, cmd, timeout=0.5):
         ''' Thread safe execution of "cmd" on the Arduino returning a single value.
         '''
         self.mutex.acquire()
 
-        attempts = 1
+        value = None
+        error = None
 
-        self.serial_port.write(cmd + '\r')
-        value = self.serial_port.readline().strip('\n')
-
-        while len(value) == 0 and attempts < max_attempts:
-            if self.debug:
-                print "Command", cmd, "failed", attempts, "time(s)"
-
+        try:
+            start = time.time()
             self.serial_port.flushInput()
             self.serial_port.flushOutput()
             self.serial_port.write(cmd + '\r')
-            value = self.serial_port.readline().strip('\n')
-            attempts += 1
+            value = self.serial_port.readline().strip('\n').strip('\r')
+        except SerialException:
+            self.print_debug_msg("Command " + str(cmd) + " failed with Serial Exception")
+            error = CommandErrorCode.SERIALEXCEPTION
+        except SerialTimeoutException:
+            self.print_debug_msg("Command " + str(cmd) + " timed out")
+            error = CommandErrorCode.TIMEOUT
+
+        duration = time.time() - start
+
+        if error is None and (value is None or len(value) == 0):
+            duration = time.time() - start
+            if duration > timeout:
+                self.print_debug_msg("Command " + str(cmd) + " timed out")
+                error = CommandErrorCode.TIMEOUT
+            else:
+                self.print_debug_msg("Command " + str(cmd) + " did not return a value")
+                error = CommandErrorCode.NOVALUE
 
         self.mutex.release()
 
+        if error:
+            raise CommandException(error)
+
         return value
 
-    def execute_array(self, cmd, max_attempts=3):
+    def execute_array(self, cmd):
         ''' Thread safe execution of "cmd" on the Arduino returning an array.
         '''
-        values = self.execute(cmd, max_attempts).split()
+        try:
+            values = self.execute(cmd).split()
+        except CommandException as e:
+            values = None
 
         return values
 
-    def execute_ack(self, cmd, max_attempts=3):
+    def execute_ack(self, cmd):
         ''' Thread safe execution of "cmd" on the Arduino returning True if response is ACK.
         '''
-        ack = self.execute(cmd, max_attempts)
-        
-        return ack == 'OK'
+        try:
+            ack = self.execute(cmd)
+            return ack == "OK"
+        except CommandException as e:
+            return False
+
+    def print_debug_msg(self, msg):
+        if self.debug:
+            rospy.logwarn(msg)
     
     def update_pid(self, Kp, Kd, Ki, Ko):
         ''' Set the PID parameters on the Arduino
         '''
         cmd = 'u ' + str(Kp) + ':' + str(Kd) + ':' + str(Ki) + ':' + str(Ko)
-        self.execute_ack(cmd)                          
+        return self.execute_ack(cmd)
 
     def get_baud(self):
         ''' Get the current baud rate on the serial port.
         '''
         try:
-            return int(self.execute('b', max_attempts=5))
+            return int(self.execute('b'))
         except:
             return None
 
@@ -258,10 +316,10 @@ class Arduino:
     
     def ping(self, pin):
         ''' The srf05/Ping command queries an SRF05/Ping sonar sensor
-            connected to the General Purpose I/O line pinId for a distance,
+            connected to the General Purpose I/O line pinId for a distance,q
             and returns the range in cm.  Sonar distance resolution is integer based.
         '''
-        return self.execute('p %d' %pin);
+        return int(self.execute('p %d' %pin));
     
 #    def get_maxez1(self, triggerPin, outputPin):
 #        ''' The maxez1 command queries a Maxbotix MaxSonar-EZ1 sonar
