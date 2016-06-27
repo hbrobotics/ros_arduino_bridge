@@ -77,15 +77,31 @@ class Arduino:
 
             # When an Arduino is first plugged in, it can take time for the serial port to wake up
             max_attempts = 10
-            attempts = 0
+            attempts = 1
+            timeout = self.timeout
 
             # Wake up the serial port
-            self.serial_port.write('\r')
-            while attempts < max_attempts and self.serial_port.read() == '':
-                rospy.loginfo("Waking up serial port...")
+            while attempts < max_attempts:
                 self.serial_port.write('\r')
+                time.sleep(timeout)
+                test = self.serial_port.read()
+                if test != '':
+                    break
+
+                rospy.loginfo("Waking up serial port attempt " + str(attempts) + " of " + str(max_attempts))
+                # Increase  timeout by 10%
+                timeout *= 1.1
+                self.serial_port.timeout = timeout
+                self.serial_port.writeTimeout = timeout
+                self.serial_port.flushInput()
+                self.serial_port.flushOutput()
                 attempts += 1
-                time.sleep(1)
+
+            if test == '':
+                raise SerialException
+
+            if timeout != self.timeout:
+                rospy.loginfo("Found best timeout to be " + str(timeout) + " seconds")
 
             # Test the connection by reading the baudrate
             attepmpts = 0
@@ -97,7 +113,7 @@ class Arduino:
             try:
                 self.serial_port.inWaiting()
                 rospy.loginfo("Connected at " + str(self.baudrate))
-                rospy.loginfo("Arduino is ready.")
+                rospy.loginfo("Arduino is ready!")
             except IOError:
                 raise SerialException
 
