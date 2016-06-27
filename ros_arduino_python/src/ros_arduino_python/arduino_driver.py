@@ -75,41 +75,41 @@ class Arduino:
             # Now open the port with the real settings
             self.serial_port = serial.Serial(port=self.port, baudrate=self.baudrate, timeout=self.timeout, writeTimeout=self.writeTimeout)
 
-            # When an Arduino is first plugged in, it can take time for the serial port to wake up
+            # It can take time for the serial port to wake up
             max_attempts = 10
-            attempts = 1
+            attempts = 0
             timeout = self.timeout
 
             # Wake up the serial port
+            self.serial_port.write('\r\r\r')
+            self.serial_port.read()
+
+            # Keep trying for max_attempts
             while attempts < max_attempts:
-                self.serial_port.write('\r')
-                time.sleep(timeout)
+                attempts += 1
+                self.serial_port.write('\r\r\r')
                 test = self.serial_port.read()
                 if test != '':
                     break
 
                 rospy.loginfo("Waking up serial port attempt " + str(attempts) + " of " + str(max_attempts))
-                # Increase  timeout by 10%
+
+                # Increase timeout by 10%
                 timeout *= 1.1
                 self.serial_port.timeout = timeout
                 self.serial_port.writeTimeout = timeout
-                self.serial_port.flushInput()
-                self.serial_port.flushOutput()
-                attempts += 1
 
             if test == '':
                 raise SerialException
 
-            if timeout != self.timeout:
-                rospy.loginfo("Found best timeout to be " + str(timeout) + " seconds")
-
             # Test the connection by reading the baudrate
-            attepmpts = 0
+            attempts = 0
             while self.get_baud() != self.baudrate and attempts < max_attempts:
                 attempts += 1
                 self.serial_port.flushInput()
                 self.serial_port.flushOutput()
                 rospy.loginfo("Connecting...")
+                time.sleep(timeout)
             try:
                 self.serial_port.inWaiting()
                 rospy.loginfo("Connected at " + str(self.baudrate))
