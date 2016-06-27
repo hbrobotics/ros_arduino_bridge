@@ -72,35 +72,32 @@ class Arduino:
             while not self.serial_port.isOpen():
                 time.sleep(self.timeout)
 
-            # Now open the port with the real settings
-            self.serial_port = serial.Serial(port=self.port, baudrate=self.baudrate, timeout=self.timeout, writeTimeout=self.writeTimeout)
+            # Now open the port with the real settings.  An initial timeout of at least 1.0 seconds seems to work best
+            self.serial_port = serial.Serial(port=self.port, baudrate=self.baudrate, timeout=max(1.0, self.timeout))
 
             # It can take time for the serial port to wake up
             max_attempts = 10
             attempts = 0
             timeout = self.timeout
 
-            # Wake up the serial port
-            self.serial_port.write('\r\r\r')
-            self.serial_port.read()
+            self.serial_port.write('\r')
+            time.sleep(timeout)
+            test = self.serial_port.read()
 
-            # Keep trying for max_attempts
-            while attempts < max_attempts:
+            #  Wake up the serial port
+            while attempts < max_attempts and test == '':
                 attempts += 1
-                self.serial_port.write('\r\r\r')
+                self.serial_port.write('\r')
+                time.sleep(timeout)
                 test = self.serial_port.read()
-                if test != '':
-                    break
-
                 rospy.loginfo("Waking up serial port attempt " + str(attempts) + " of " + str(max_attempts))
-
-                # Increase timeout by 10%
-                timeout *= 1.1
-                self.serial_port.timeout = timeout
-                self.serial_port.writeTimeout = timeout
 
             if test == '':
                 raise SerialException
+
+            # Reset the timeout to the user specified timeout
+            self.serial_port.setTimeout(self.timeout)
+            self.serial_port.setWriteTimeout(self.timeout)
 
             # Test the connection by reading the baudrate
             attempts = 0
