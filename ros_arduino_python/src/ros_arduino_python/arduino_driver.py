@@ -258,7 +258,10 @@ class Arduino:
     def get_baud(self):
         ''' Get the current baud rate on the serial port.
         '''
-        return int(self.execute('b'));
+        try:
+            return int(self.execute('b'));
+        except:
+            return None
 
     def get_encoder_counts(self):
         values = self.execute_array('e')
