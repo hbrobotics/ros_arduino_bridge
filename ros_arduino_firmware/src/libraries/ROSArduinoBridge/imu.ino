@@ -43,20 +43,29 @@
       data.gx = event.gyro.x;
       data.gy = event.gyro.y;
       data.gz = event.gyro.z;
-
+/*
       if (dof.accelGetOrientation(&accel_event, &orientation))
       {
-         /* 'orientation' should have valid .roll and .pitch fields */
         data.roll = orientation.roll;
         data.pitch = orientation.pitch;
       }
-      
+*/
+
       /* Calculate the heading using the magnetometer */
       mag.getEvent(&mag_event);
+
+/*
       if (dof.magGetOrientation(SENSOR_AXIS_Z, &mag_event, &orientation))
       {
-        /* 'orientation' should have valid .heading data now */
         data.mz = orientation.heading;
+      }
+*/
+
+      if (dof.fusionGetOrientation(&accel_event, &mag_event, &orientation))
+      {
+        data.roll = orientation.roll;
+        data.pitch = orientation.pitch;
+        data.ch = orientation.heading;
       }
       
       return data;
