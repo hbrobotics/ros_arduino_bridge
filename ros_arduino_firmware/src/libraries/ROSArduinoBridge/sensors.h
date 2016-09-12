@@ -26,7 +26,7 @@ long Ping(int pin) {
   pinMode(pin, INPUT);
   duration = pulseIn(pin, HIGH);
 
-  // convert the time into meters
+  // convert the time into centimeters
   range = microsecondsToCm(duration);
   
   return(range);
