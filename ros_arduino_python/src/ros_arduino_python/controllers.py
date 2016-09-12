@@ -61,13 +61,4 @@ class Controller:
     ## @brief Is the controller actively sending commands to joints?
     def active(self):
         return False
-        
-    ## @brief Get a diagnostics message for this joint.
-    ##
-    ## @return Diagnostics message. 
-    def getDiagnostics(self):
-        msg = DiagnosticStatus()
-        msg.name = self.name
-        msg.level = DiagnosticStatus.OK
-        msg.message = "OK"
-        return msg
+
