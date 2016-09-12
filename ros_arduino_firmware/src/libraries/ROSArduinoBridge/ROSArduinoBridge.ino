@@ -52,13 +52,13 @@
 /* Define the motor controller and encoder library you are using */
 #ifdef USE_BASE
   /* The Pololu VNH5019 dual motor driver shield */
-  //#define POLOLU_VNH5019
+  #define POLOLU_VNH5019
 
   /* The Pololu MC33926 dual motor driver shield */
   //#define POLOLU_MC33926
 
   /* The Adafruit motor shield V2 */
-  #define ADAFRUIT_MOTOR_SHIELD_V2
+  //#define ADAFRUIT_MOTOR_SHIELD_V2
 
   /* The Ardunino Motor Shield R3 */
   //#define ARDUINO_MOTOR_SHIELD_R3
@@ -73,10 +73,10 @@
   // #define NO_MOTOR_CONTROLLER
   
   /* The RoboGaia encoder shield */
-  //#define ROBOGAIA
+  #define ROBOGAIA
   
   /* The RoboGaia 3-axis encoder shield */
-  #define ROBOGAIA_3_AXIS
+  //#define ROBOGAIA_3_AXIS
   
   /* Encoders directly attached to Arduino board */
   //#define ARDUINO_ENC_COUNTER
