@@ -24,13 +24,13 @@ from ros_arduino_python.arduino_driver import Arduino
 from ros_arduino_python.arduino_sensors import *
 from ros_arduino_msgs.srv import *
 from ros_arduino_python.diagnostics import DiagnosticsUpdater, DiagnosticsPublisher
-from dynamic_reconfigure.server import Server
-import dynamic_reconfigure.client
 from ros_arduino_python.cfg import ROSArduinoBridgeConfig
 from ros_arduino_python.base_controller import BaseController
 from ros_arduino_python.servo_controller import Servo, ServoController
 from ros_arduino_python.follow_controller import FollowController
 from ros_arduino_python.joint_state_publisher import JointStatePublisher
+from dynamic_reconfigure.server import Server
+import dynamic_reconfigure.client
 from geometry_msgs.msg import Twist
 from std_srvs.srv import Empty, EmptyResponse
 import os, time, thread
