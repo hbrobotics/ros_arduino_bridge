@@ -2,24 +2,14 @@
 
 port: /dev/arduino
 baud: 57600
-timeout: 0.1
+timeout: 0.5
 
-rate: 50
+rate: 30
+
 sensorstate_rate: 10
-
 use_base_controller: False
-
 joint_update_rate: 10
 
-# === Sensor definitions.  Examples only - edit for your robot.
-#     Sensor type can be one of the follow (case sensitive!):
-#	  * Analog
-#     * Digital
-#     * Ping
-#	  * GP2D12
-#	  * PololuMotorCurrent
-#	  * PhidgetsVoltage
-#	  * PhidgetsCurrent (20 Amp, DC)
 
 sensors: {
   onboard_led: {pin: 13, type: Digital, direction: output, rate: 1}
@@ -27,5 +17,5 @@ sensors: {
 
 # Joint name and pin assignment is an example only
 joints: {
-    head_pan_joint: {pin: 3, init_position: 30, init_speed: 90, neutral: 90, min_position: -90, max_position: 90, invert: False, continuous: False}
+    head_pan_joint: {pin: 3, init_position: 0, init_speed: 60, neutral: 90, min_position: -90, max_position: 90, invert: False, continuous: False}
 }
