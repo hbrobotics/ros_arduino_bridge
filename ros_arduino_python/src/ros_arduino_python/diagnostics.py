@@ -71,11 +71,13 @@ class DiagnosticsUpdater():
             self.diag_updater.setHardwareID(self.name)
             
         # Create a frequency monitor that tracks the publishing frequency for this component
-        # TODO: Need to add frequency check for servo controller (joint_update_rate)
         if self.component.rate > 0:
-            if "Servo" not in str(self.component):
-                freq_bounds = diagnostic_updater.FrequencyStatusParam({'min': self.component.rate, 'max': self.component.rate}, 0.3, 5)
+            if "Servo" in str(self.component):
+                freq_bounds = diagnostic_updater.FrequencyStatusParam({'min': self.component.device.joint_update_rate, 'max': self.component.device.joint_update_rate}, 0.3, 5)
                 self.freq_diag = diagnostic_updater.HeaderlessTopicDiagnostic(self.component.name + '_freq', self.diag_updater, freq_bounds)
+            else:
+                 freq_bounds = diagnostic_updater.FrequencyStatusParam({'min': self.component.rate, 'max': self.component.rate}, 0.3, 5)
+                 self.freq_diag = diagnostic_updater.HeaderlessTopicDiagnostic(self.component.name + '_freq', self.diag_updater, freq_bounds)
 
         # Create an error monitor that tracks timeouts, serial exceptions etc
         self.error_diag = diagnostic_updater.FunctionDiagnosticTask(self.name, self.get_error_rate)
