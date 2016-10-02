@@ -87,7 +87,7 @@ class Servo(Joint):
         self.joint_speed_scale_correction = rospy.get_param(namespace + 'joint_speed_scale_correction', 1.0)
 
         # Get the initial servo speed in degrees per second
-        self.servo_speed = radians(rospy.get_param(namespace +  'init_speed', 60.0))
+        self.servo_speed = radians(rospy.get_param(namespace + 'init_speed', 60.0))
 
         self.direction = copysign(1, -self.servo_speed)
 
