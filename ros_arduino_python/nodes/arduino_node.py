@@ -29,7 +29,7 @@ from ros_arduino_python.base_controller import BaseController
 from ros_arduino_python.servo_controller import Servo, ServoController
 from ros_arduino_python.follow_controller import FollowController
 from ros_arduino_python.joint_state_publisher import JointStatePublisher
-from dynamic_reconfigure.server import Server
+import dynamic_reconfigure.server
 import dynamic_reconfigure.client
 from geometry_msgs.msg import Twist
 from std_srvs.srv import Empty, EmptyResponse
@@ -41,12 +41,14 @@ controller_types = { "follow_controller" : FollowController }
 
 class ArduinoROS():
     def __init__(self):
-        self.name = 'arduino'
-        rospy.init_node(self.name, log_level=rospy.INFO)
-                
+        rospy.init_node('arduino', log_level=rospy.INFO)
+
+        # Find the actual node name in case it is set in the launch file
+        self.name = rospy.get_name()
+
         # Cleanup when termniating the node
         rospy.on_shutdown(self.shutdown)
-        
+
         self.port = rospy.get_param("~port", "/dev/ttyACM0")
         self.baud = int(rospy.get_param("~baud", 57600))
         self.timeout = rospy.get_param("~timeout", 0.5)
@@ -129,11 +131,10 @@ class ArduinoROS():
         else:
             rospy.logerr("No serial connection found.")
             os._exit(0)
-            #rospy.signal_shutdown("No serial connection found.")
 
         # Initialize the base controller if used
         if self.use_base_controller:
-            self.base_controller = BaseController(self.device, self.base_frame)
+            self.base_controller = BaseController(self.device, self.base_frame, self.name + "_base_controller")
             
             # A service to reset the odometry values to 0
             rospy.Service('~reset_odometry', Empty, self.ResetOdometryHandler)
@@ -141,11 +142,11 @@ class ArduinoROS():
             # A service to update the PID parameters Kp, Kd, Ki, and Ko
             rospy.Service('~update_pid', UpdatePID, self.UpdatePIDHandler)
             
-        # Fire up the dynamic_reconfigure server
-        dyn_server = Server(ROSArduinoBridgeConfig, self.dynamic_reconfigure_server_callback)
+            # Fire up the dynamic_reconfigure server
+            dyn_server = dynamic_reconfigure.server.Server(ROSArduinoBridgeConfig, self.dynamic_reconfigure_server_callback, namespace=self.name)
 
-        # Connect to the dynamic_reconfigure client
-        dyn_client = dynamic_reconfigure.client.Client("arduino", timeout=5)
+            # Connect to the dynamic_reconfigure client
+            dyn_client = dynamic_reconfigure.client.Client(self.name, timeout=5)
      
         # Reserve a thread lock
         mutex = thread.allocate_lock()
