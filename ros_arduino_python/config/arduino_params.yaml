@@ -5,7 +5,7 @@
 
 port: /dev/ttyACM0
 baud: 57600
-timeout: 0.1
+timeout: 0.5
 
 rate: 50
 sensorstate_rate: 10
