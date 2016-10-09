@@ -30,11 +30,14 @@ import thread
 
 class ArduinoROS():
     def __init__(self):
-        rospy.init_node('Arduino', log_level=rospy.DEBUG)
-                
+        rospy.init_node('arduino', log_level=rospy.INFO)
+
+        # Get the actual node name in case it is set in the launch file
+        self.name = rospy.get_name()
+
         # Cleanup when termniating the node
         rospy.on_shutdown(self.shutdown)
-        
+
         self.port = rospy.get_param("~port", "/dev/ttyACM0")
         self.baud = int(rospy.get_param("~baud", 57600))
         self.timeout = rospy.get_param("~timeout", 0.5)
@@ -127,13 +130,15 @@ class ArduinoROS():
 #                if params['type'] == "MaxEZ1":
 #                    self.sensors[len(self.sensors)]['trigger_pin'] = params['trigger_pin']
 #                    self.sensors[len(self.sensors)]['output_pin'] = params['output_pin']
-
-            self.mySensors.append(sensor)
-            rospy.loginfo(name + " " + str(params) + " published on topic " + rospy.get_name() + "/sensor/" + name)
+            try:
+                self.mySensors.append(sensor)
+                rospy.loginfo(name + " " + str(params) + " published on topic " + rospy.get_name() + "/sensor/" + name)
+            except:
+                rospy.logerr("Sensor type " + str(params['type']) + " not recognized.")
               
         # Initialize the base controller if used
         if self.use_base_controller:
-            self.myBaseController = BaseController(self.controller, self.base_frame)
+            self.myBaseController = BaseController(self.controller, self.base_frame, self.name + "_base_controller")
     
         # Start polling the sensors and base controller
         while not rospy.is_shutdown():

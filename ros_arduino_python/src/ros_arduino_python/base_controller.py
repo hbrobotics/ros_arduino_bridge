@@ -31,8 +31,9 @@ from tf.broadcaster import TransformBroadcaster
  
 """ Class to receive Twist commands and publish Odometry data """
 class BaseController:
-    def __init__(self, arduino, base_frame):
+    def __init__(self, arduino, base_frame, name="base_controllers"):
         self.arduino = arduino
+        self.name = name
         self.base_frame = base_frame
         self.rate = float(rospy.get_param("~base_controller_rate", 10))
         self.timeout = rospy.get_param("~base_controller_timeout", 1.0)
