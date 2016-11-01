@@ -146,7 +146,7 @@ class ArduinoROS():
             dyn_server = dynamic_reconfigure.server.Server(ROSArduinoBridgeConfig, self.dynamic_reconfigure_server_callback, namespace=self.name)
 
             # Connect to the dynamic_reconfigure client
-            dyn_client = dynamic_reconfigure.client.Client(self.name, timeout=5)
+            dyn_client = dynamic_reconfigure.client.Client (self.name, timeout=5)
      
         # Reserve a thread lock
         mutex = thread.allocate_lock()
@@ -201,15 +201,18 @@ class ArduinoROS():
 #                    self.sensors[len(self.sensors)]['trigger_pin'] = params['trigger_pin']
 #                    self.sensors[len(self.sensors)]['output_pin'] = params['output_pin']
 
-            self.device.sensors.append(sensor)
+            try:
+                self.device.sensors.append(sensor)
             
-            if params['rate'] != None and params['rate'] != 0:
-                rospy.loginfo(name + " " + str(params) + " published on topic " + rospy.get_name() + "/sensor/" + name)
-            else:
-                if sensor.direction == "input":
-                    rospy.loginfo(name + " service ready at " + rospy.get_name() + "/" + name + "/read")
+                if params['rate'] != None and params['rate'] != 0:
+                    rospy.loginfo(name + " " + str(params) + " published on topic " + rospy.get_name() + "/sensor/" + name)
                 else:
-                    rospy.loginfo(name + " service ready at " + rospy.get_name() + "/" + name + "/write")
+                    if sensor.direction == "input":
+                        rospy.loginfo(name + " service ready at " + rospy.get_name() + "/" + name + "/read")
+                    else:
+                        rospy.loginfo(name + " service ready at " + rospy.get_name() + "/" + name + "/write")
+            except:
+                rospy.logerr("Sensor type " + str(params['type'] + " not recognized."))
 
         # If at least one IMU or gyro is used for odometry, set the use_imu_heading flag on the base controller
         if self.use_base_controller and len(self.imu_for_odom) > 0:
