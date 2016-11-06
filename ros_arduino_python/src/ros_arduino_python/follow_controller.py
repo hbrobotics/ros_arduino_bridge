@@ -61,7 +61,7 @@ class FollowController(Controller):
     def execute_cb(self, goal):
         rospy.loginfo(self.name + ": Action goal recieved.")
         traj = goal.trajectory
-
+        
         if set(self.joints) != set(traj.joint_names):
             for j in self.joints:
                 if j not in traj.joint_names:
@@ -115,6 +115,10 @@ class FollowController(Controller):
         start = traj.header.stamp
         if start.secs == 0 and start.nsecs == 0:
             start = rospy.Time.now()
+        
+        # Set the start time for each joint
+        for i in range(len(self.joints)):
+            self.device.joints[self.joints[i]].time_move_started = start
 
         r = rospy.Rate(self.rate)
         last = [ self.device.joints[joint].position for joint in self.joints ]
@@ -138,8 +142,12 @@ class FollowController(Controller):
                         last[i] += cmd
                         self.device.joints[self.joints[i]].time_move_started = rospy.Time.now()
                         self.device.joints[self.joints[i]].in_trajectory = True
+                        self.device.joints[self.joints[i]].is_moving = True
                         self.device.joints[self.joints[i]].desired = last[i]
                     else:
+                        self.device.joints[self.joints[i]].speed = 0.0
+                        self.device.joints[self.joints[i]].in_trajectory = True
+                        self.device.joints[self.joints[i]].is_moving = False
                         velocity[i] = 0
                 r.sleep()
         return True

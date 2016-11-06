@@ -36,7 +36,6 @@ class Joint:
 
         self.position = 0.0        # radians
         self.start_position = 0.0
-        self.goal_position = 0.0
         self.position_last = 0.0   # radians
         self.velocity = 0.0        # rad/s
         self.servo_speed = 0.0     # rad/s
@@ -143,9 +142,6 @@ class Servo(Joint):
 
         # Record the starting position
         self.start_position = self.get_current_position()
-
-        # Record the goal_postion
-        self.goal_position = msg.data
 
         # Set the target position for the next servo controller update
         self.desired = msg.data
@@ -280,24 +276,6 @@ class ContinousServo(Joint):
         self.is_moving = True
         self.direction = copysign(1, self.desired - self.position)
 
-#     def command_cb(self, msg):
-#         # Check limits
-#         if msg.data > self.max_speed:
-#             msg.data = self.max_speed
-#
-#         if msg.data < self.min_speed:
-#             msg.data = self.min_speed
-#
-#         # Adjust for the neutral offset
-#         if self.invert:
-#             servo_ticks = self.neutral - msg.data * self.ticks_per_rad_per_sec
-#         else:
-#             servo_ticks = self.neutral + msg.data * self.ticks_per_rad_per_sec
-#
-#         # Set the target speed for the next servo controller update
-#         self.desired =  radians(servo_ticks)
-
-
 class ServoController():
     def __init__(self, device, name):
         self.name = name
@@ -317,6 +295,7 @@ class ServoController():
         if rospy.Time.now() > self.next_update:
             for servo in self.servos:
 
+                
                 # Check to see if we are within 2 degrees of the desired position or gone past it
                 if not servo.in_trajectory and servo.is_moving:
                     if abs(servo.position - servo.desired) < radians(2.0) or copysign(1, servo.desired - servo.position) != servo.direction:
@@ -324,11 +303,12 @@ class ServoController():
                         servo.is_moving = False
                         servo.velocity = 0.0
                         duration =  rospy.Time.now() - servo.time_move_started
-
+                        
                 # If the servo is still moving, update its interpolated position and velocity
                 if servo.is_moving:
                     try:
                         # Get the interpolated current position of the servo
+                        servo.position = servo.get_interpolated_position()
                         if not servo.in_trajectory:
                             servo.position = servo.get_interpolated_position()
                         else:
@@ -337,7 +317,7 @@ class ServoController():
                         # We cannot interpolate both position and velocity so just set velocity to the current speed
                         servo.velocity = servo.servo_speed
                         servo.position_last = servo.position
-
+                        
                         # Update diagnostics counters
                         servo.diagnostics.reads += 1
                         servo.diagnostics.total_reads += 1
