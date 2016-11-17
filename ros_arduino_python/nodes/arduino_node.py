@@ -477,7 +477,7 @@ class ArduinoROS():
                 rospy.sleep(0.2)
                 
         # Close the serial port
-        #self.device.serial_port.close()
+        self.device.close()
         
 if __name__ == '__main__':
     try:
@@ -486,7 +486,9 @@ if __name__ == '__main__':
         try:
             myArduino.device.serial_port.close()
         except:
+            rospy.logerr("Serial exception trying to close port.")
             os._exit(0)
     except SerialException:
+        rospy.logerr("Serial exception trying to open port.")
         os._exit(0)
         
