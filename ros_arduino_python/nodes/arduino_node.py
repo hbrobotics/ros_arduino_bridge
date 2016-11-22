@@ -27,6 +27,7 @@ from ros_arduino_python.base_controller import BaseController
 from geometry_msgs.msg import Twist
 import os, time
 import thread
+from serial.serialutil import SerialException
 
 class ArduinoROS():
     def __init__(self):
@@ -201,6 +202,8 @@ class ArduinoROS():
         return AnalogReadResponse(value)
  
     def shutdown(self):
+        rospy.loginfo("Shutting down Arduino Node...")
+
         # Stop the robot
         try:
             rospy.loginfo("Stopping the robot...")
@@ -208,7 +211,19 @@ class ArduinoROS():
             rospy.sleep(2)
         except:
             pass
-        rospy.loginfo("Shutting down Arduino Node...")
         
+        # Close the serial port
+        try:
+            self.controller.close()
+        except:
+            pass
+        finally:
+            rospy.loginfo("Serial port closed.")
+            os._exit(0)
+
 if __name__ == '__main__':
-    myArduino = ArduinoROS()
+    try:
+        myArduino = ArduinoROS()
+    except SerialException:
+        rospy.logerr("Serial exception trying to open port.")
+        os._exit(0)
