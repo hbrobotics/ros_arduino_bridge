@@ -23,7 +23,6 @@
   <run_depend>nav_msgs</run_depend>
   <run_depend>diagnostic_msgs</run_depend>
   <run_depend>diagnostic_updater</run_depend>
-  <run_depend>diagnostic_updater</run_depend>
   <run_depend>diagnostic_aggregator</run_depend>
   <run_depend>tf</run_depend>
   <run_depend>ros_arduino_msgs</run_depend>
