@@ -59,6 +59,8 @@ class BaseController:
         
         self.accel_limit = rospy.get_param('~accel_limit', 1.0)
         self.motors_reversed = rospy.get_param("~motors_reversed", False)
+        self.detect_enc_jump_error = rospy.get_param("~detect_enc_jump_error", False)
+        self.enc_jump_error_threshold = rospy.get_param("~enc_jump_error_threshold", 1000)
 
         # Default error threshold (percent) before getting a diagnostics warning
         self.base_diagnotics_error_threshold = rospy.get_param("~base_diagnotics_error_threshold", 10)
@@ -151,6 +153,30 @@ class BaseController:
                 self.bad_encoder_count += 1
                 rospy.logerr("Encoder exception count: " + str(self.bad_encoder_count))
                 return
+
+            # Check for jumps in encoder readings
+            if self.detect_enc_jump_error:
+                try:
+                    #rospy.loginfo("Left: %d LEFT: %d Right: %d RIGHT: %d", left_enc, self.enc_left, right_enc, self.enc_right)
+                    enc_jump_error = False
+                    if abs(right_enc - self.enc_right) > self.enc_jump_error_threshold:
+                        self.diagnostics.errors += 1
+                        self.bad_encoder_count += 1
+                        rospy.logerr("RIGHT encoder jump error from %d to %d", self.enc_right, right_enc)
+                        self.enc_right = right_enc
+                        enc_jump_error = True
+
+                    if abs(left_enc - self.enc_left) > self.enc_jump_error_threshold:
+                        self.diagnostics.errors += 1
+                        self.bad_encoder_count += 1
+                        rospy.logerr("LEFT encoder jump error from %d to %d", self.enc_left, left_enc)
+                        self.enc_left = left_enc
+                        enc_jump_error = True
+
+                    if enc_jump_error:
+                        return
+                except:
+                    pass
 
             dt = now - self.then
             self.then = now
