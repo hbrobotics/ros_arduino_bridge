@@ -65,6 +65,7 @@ http://www.ros.org/wiki/ros_arduino_bridge
 System Requirements
 -------------------
 **ROS Dependencies**
+
     $ sudo apt-get install ros-indigo-diagnostic-updater ros-indigo-control-msgs ros-indigo-nav-msgs
 
 **Python Serial:** To install the python-serial package under Ubuntu, use the command:
