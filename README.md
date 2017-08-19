@@ -26,6 +26,8 @@ the PC. The base controller requires the use of a motor controller and encoders 
 
 **NOTE:** The Robogaia Mega Encoder shield can only be used with an Arduino Mega. The on-board wheel encoder counters are currently only supported by Arduino Uno.
 
+* L298 motor driver
+
 * The library can be easily extended to include support for other motor controllers and encoder hardware or libraries.
 
 Official ROS Documentation
@@ -66,6 +68,8 @@ https://github.com/pololu/dual-mc33926-motor-shield
 The Robogaia Mega Encoder library can be found at:
 
 http://www.robogaia.com/uploads/6/8/0/9/6809982/__megaencodercounter-1.3.tar.gz
+
+L298 Motor Driver doesn't require any libraries
 
 These libraries should be installed in your standard Arduino
 sketchbook/libraries directory.
@@ -148,7 +152,7 @@ still want to try the code, see the notes at the end of the file.
 
 Choose one of the supported motor controllers by uncommenting its #define statement and commenting out any others.  By default, the Pololu VNH5019 driver is chosen.
 
-Choose a supported encoder library by by uncommenting its #define statement and commenting out any others.  At the moment, only the Robogaia Mega Encoder shield is supported and it is chosen by default.
+Choose a supported encoder library by by uncommenting its #define statement and commenting out any others. the Robogaia Mega Encoder shield is chosen by default.
 
 If you want to control PWM servos attached to your controller, look for the line:
 
@@ -461,6 +465,18 @@ Make the following changes in the ROSArduinoBridge sketch to disable the RoboGai
 
 Compile the changes and upload to your controller.
 
+Using L298 Motor driver
+-----------------------
+the wiring between the L298 motor driver and arduino board is defined in motor_driver.h in the firmware as follow:
+
+    #define RIGHT_MOTOR_BACKWARD 5
+    #define LEFT_MOTOR_BACKWARD  6
+    #define RIGHT_MOTOR_FORWARD  9
+    #define LEFT_MOTOR_FORWARD   10
+    #define RIGHT_MOTOR_ENABLE 12
+    #define LEFT_MOTOR_ENABLE 13
+
+wire them this way or change them if you want, and make sure that the L298 motor driver is defined then compile and upload the firmware.
 
 NOTES
 -----
