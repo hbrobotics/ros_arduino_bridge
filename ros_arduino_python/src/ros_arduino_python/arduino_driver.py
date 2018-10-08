@@ -96,8 +96,8 @@ class Arduino:
                 raise SerialException
 
             # Reset the timeout to the user specified timeout
-            self.serial_port.setTimeout(self.timeout)
-            self.serial_port.setWriteTimeout(self.timeout)
+            self.serial_port.timeout = self.timeout
+            self.serial_port.writeTimeout = self.timeout
 
             # Test the connection by reading the baudrate
             attempts = 0
