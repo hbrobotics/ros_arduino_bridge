@@ -183,7 +183,7 @@ so it looks like this:
 #define USE_BASE
 </pre>
 
-You will also need to choose one of the supported motor controllers by uncommenting its #define statement and commenting out any others.  By default, the Pololu VNH5019 driver is chosen.
+You will also need to choose one of the supported motor controllers by uncommenting its #define statement and commenting out any others.  By default, the Adafruit Motor Driver v2.3 is chosen.
 
 Choose a supported encoder library by by uncommenting its #define statement and commenting out any others.  At the moment, the two options are the Robogaia Mega Encoder shield (chosen by default) and the directo connection ARDUINO_ENC_COUNTER option that works for Arduino Uno compatible boards.
 
