@@ -1,4 +1,4 @@
-For ROS Kinetic, Ubuntu 16.04 and Python2 (might work with ROS Hydro and Ubuntu 14.04)
+For ROS Kinetic, Ubuntu 16.04 and Python2 (might work with ROS Indigo and Ubuntu 14.04)
 
 Table of Contents
 =================
@@ -23,7 +23,7 @@ Table of Contents
 
 Overview
 --------
-This branch (kinetic-devel) is intended for ROS Kinetic and above, and uses the catkin buildsystem. It may also be compatible with ROS Hydro.
+This branch (kinetic-devel) is intended for ROS Kinetic and above, and uses the catkin buildsystem. It may also be compatible with ROS Indigo.
 
 This ROS metapackage includes an Arduino library (called ROSArduinoBridge) and a collection of ROS packages for controlling an Arduino-based robot using standard ROS messages and services.  The stack does **not** depend on ROS Serial.
 
