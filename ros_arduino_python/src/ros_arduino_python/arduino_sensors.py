@@ -291,7 +291,7 @@ class Ping(SonarSensor):
     def __init__(self,*args, **kwargs):
         super(Ping, self).__init__(*args, **kwargs)
                 
-        self.msg.field_of_view = 0.7
+        self.msg.field_of_view = 0.27
         self.msg.min_range = 0.02
         self.msg.max_range = 3.0
         

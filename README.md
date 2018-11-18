@@ -1,6 +1,4 @@
-**UNSTABLE BRANCH**
-
-This branch is under active development and is not likely to work.  Please use the official hydro-devel or indigo-devel branch for ROS Hydro or ROS Indigo, respectively.
+For ROS Kinetic, Ubuntu 16.04 and Python2 (might work with ROS Hydro and Ubuntu 14.04)
 
 Table of Contents
 =================
@@ -8,6 +6,7 @@ Table of Contents
 * [Overview](#overview)
 * [Official ROS Documentation](#official-ros-documentation)
 * [System Requirements](#system-requirements)
+* [Hardware Requirements](#hardware-requirements)
 * [Preparing your Serial Port under Linux](#preparing-your-serial-port-under-linux)
 * [Installation of the ros_arduino_bridge Stack](#installation-of-the-ros_arduino_bridge-stack)
 * [Loading the ROSArduinoBridge Sketch](#loading-the-rosarduinobridge-sketch)
@@ -20,15 +19,15 @@ Table of Contents
 * [ROS Services for Sensors and Servos](#ros-services-for-sensors-and-servos)
 * [ROS Joint Topics and Services](#ros-joint-topics-and-services)
 * [Using the on-board wheel encoder counters (Arduino Uno only)](#using-the-on-board-wheel-encoder-counters-arduino-uno-only)
-* [NOTES](#notes)
+* [Running without a Base Controller](#running-without-a-base-controller)
 
 Overview
 --------
-This branch (indigo-devel) is intended for ROS Indigo and above, and uses the Catkin buildsystem. It may also be compatible with ROS Hydro.
+This branch (kinetic-devel) is intended for ROS Kinetic and above, and uses the catkin buildsystem. It may also be compatible with ROS Hydro.
 
 This ROS metapackage includes an Arduino library (called ROSArduinoBridge) and a collection of ROS packages for controlling an Arduino-based robot using standard ROS messages and services.  The stack does **not** depend on ROS Serial.
 
-Features of the stack include:
+Features of the package include:
 
 * Direct support for Ping sonar and Sharp infrared (GP2D12) sensors
 
@@ -38,22 +37,9 @@ Features of the stack include:
 
 * Support for PWM servos
 
-* Configurable base controller if using the required hardware
+* Configurable base controller for a differential drive mobile robot including support for encoders if using the required hardware (see [Hardware](#Hardware) below)
 
-The stack includes a base controller for a differential drive
-robot that accepts ROS Twist messages and publishes odometry data back to
-the PC. The base controller requires the use of a motor controller and encoders for reading odometry data.  The current version of the stack provides support for the following base controller hardware:
-
-* Pololu VNH5019 dual motor controller shield (http://www.pololu.com/catalog/product/2502) or Pololu MC33926 dual motor shield (http://www.pololu.com/catalog/product/2503).
-
-* Robogaia Mega Encoder shield
-(http://www.robogaia.com/two-axis-encoder-counter-mega-shield-version-2.html)
-
-* Instead of the Encoder shield, wheel encoders can be [connected directly](#using-the-on-board-wheel-encoder-counters-arduino-uno-only) if using an Arduino Uno
-
-**NOTE:** The Robogaia Mega Encoder shield can only be used with an Arduino Mega. The on-board wheel encoder counters are currently only supported by Arduino Uno.
-
-* The library can be easily extended to include support for other motor controllers and encoder hardware or libraries.
+* ROS diagnostics messages published for each attached sensor
 
 Official ROS Documentation
 --------------------------
@@ -66,7 +52,7 @@ System Requirements
 -------------------
 **ROS Dependencies**
 
-    $ sudo apt-get install ros-indigo-diagnostic-updater ros-indigo-control-msgs ros-indigo-nav-msgs
+    $ sudo apt-get install ros-kinetic-diagnostic-updater ros-kinetic-control-msgs ros-kinetic-nav-msgs
 
 **Python Serial:** To install the python-serial package under Ubuntu, use the command:
 
@@ -83,20 +69,31 @@ or
 **Arduino IDE 1.6.6 or Higher:**
 Note that the preprocessing of conditional #include statements is broken in earlier versions of the Arduino IDE.  To ensure that the ROS Arduino Bridge firmware compiles correctly, be sure to install version 1.6.6 or higher of the Arduino IDE.  You can download the IDE from https://www.arduino.cc/en/Main/Software.
 
-**Hardware:**
-The firmware should work with any Arduino-compatible controller for reading sensors and controlling PWM servos.  However, to use the base controller, you will need a supported motor controller and encoder hardware as described above. If you do not have this hardware, you can still try the package for reading sensors and controlling servos.  See the NOTES section at the end of this document for instructions on how to do this.
+Hardware Requirements
+---------------------
+The firmware should work with any Arduino-compatible controller for reading sensors and controlling PWM servos.  However, to use the base controller, you will need a supported motor controller and encoder hardware as described below.
+If you do not have this hardware, you can still try the package for reading sensors and controlling servos.  See [Running without a Base Controller](#unning-without-a-base-controller) at the end of this document for instructions on how to do this.
 
-To use the base controller you must also install the appropriate libraries for your motor controller and encoders.  For the Pololu VNH5019 Dual Motor Shield, the library can be found at:
+The base controller requires the use of a motor controller and encoders for reading odometry data.  The current version of the package provides support for the following motor controller and encoder hardware:
 
-https://github.com/pololu/Dual-VNH5019-Motor-Shield
+* Robogaia 3-axis Encoder shield (Compatible with Arduino Mega, Due, Uno)
+(https://www.robogaia.com/3-axis-encoder-conter-arduino-shield.html)
 
-For the Pololu MC33926 Dual Motor Shield, the library can be found at:
+* Mega Moto Controller (http://www.robotshop.com/en/arduino-compatible-mega-motor-shield-1a-5-28v.html)
 
-https://github.com/pololu/dual-mc33926-motor-shield
+* Arduino R3 Motor Controller (http://arduino.cc/en/Main/ArduinoMotorShieldR3 [without the brake capability])
+
+* Instead of the Encoder shield, wheel encoders can be [connected directly](#using-the-on-board-wheel-encoder-counters-arduino-uno-only) (**NOTE:** The on-board wheel encoder counters are currently only supported by Arduino Uno.)
+
+* The library can be easily extended to include support for other motor controllers and encoder hardware or libraries.
+
+To use the base controller you must also install the appropriate libraries for your motor controller and encoders.
 
 The Robogaia Mega Encoder library can be found at:
 
 http://www.robogaia.com/uploads/6/8/0/9/6809982/__megaencodercounter-1.3.tar.gz
+
+Please see the website for the supported motor controllers above for library support.
 
 These libraries should be installed in your standard Arduino
 sketchbook/libraries directory.
@@ -122,7 +119,7 @@ Next you need to make sure you have read/write access to the port.  Assuming you
 
 and you should see an output similar to the following:
 
-    crw-rw---- 1 root dialout 166, 0 2013-02-24 08:31 /dev/ttyACM0
+    crw-rw---- 1 root dialout 166, 0 2018-02-24 08:31 /dev/ttyACM0
 
 Note that only root and the "dialout" group have read/write access.  Therefore, you need to be a member of the dialout group.  You only have to do this once and it should then work for all USB devices you plug in later on.
 
@@ -138,7 +135,7 @@ When you log back in again, try the command:
 
 and you should see a list of groups you belong to including dialout. 
 
-Installation of the ros\_arduino\_bridge Stack
+Installation of the ros\_arduino\_bridge Package
 ----------------------------------------------
 
     $ cd ~/catkin_workspace/src
@@ -566,8 +563,8 @@ Make the following changes in the ROSArduinoBridge sketch to disable the RoboGai
 Compile the changes and upload to your controller.
 
 
-NOTES
------
+Running without a Base Controller
+---------------------------------
 If you do not have the hardware required to run the base controller,
 follow the instructions below so that you can still use your
 Arduino-compatible controller to read sensors and control PWM servos.

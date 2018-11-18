@@ -1,0 +1,11 @@
+pub_rate: 1.0 # Optional
+base_path: '' # Optional, prepended to all diagnostic output
+
+analyzers:
+  sensors:
+    type: diagnostic_aggregator/GenericAnalyzer
+    path: 'Sensors'
+    discard_stale: true
+    timeout: 5.0
+    contains: '_sensor'
+

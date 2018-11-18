@@ -1,0 +1,19 @@
+pub_rate: 1.0 # Optional
+base_path: '' # Optional, prepended to all diagnostic output
+
+analyzers:
+  arduino:
+    type: diagnostic_aggregator/GenericAnalyzer
+    path: 'Arduino'
+    discard_stale: true
+    timeout: 5.0
+    discard_stale: true
+    regex: '.*arduino$'
+  pub_frequency:
+    type: diagnostic_aggregator/GenericAnalyzer
+    path: 'Pub Frequency'
+    discard_stale: true
+    timeout: 5.0
+    discard_stale: true
+    contains: 'freq'
+

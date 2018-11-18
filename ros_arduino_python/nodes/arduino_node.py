@@ -272,9 +272,13 @@ class ArduinoROS():
             controller.startup()
             
         print "\n==> ROS Arduino Bridge ready for action!"
+        
+        last_sonar_update = rospy.Time.now()
     
         # Start polling the sensors, base controller, and servo controller
         while not rospy.is_shutdown():
+            now = rospy.Time.now()
+            
             # Heartbeat/watchdog test for the serial connection
             try:
                 # Update read counters
