@@ -166,6 +166,8 @@ class ArduinoROS():
                 sensor = Ping(self.device, name, **params)
             elif params['type'].lower() == 'GP2D12'.lower() or params['type'].lower() == 'GP2Y0A21YK0F'.lower():
                 sensor = GP2D12(self.device, name, **params)
+            elif params['type'].lower() == 'GP2Y0A02YK0F'.lower():
+                sensor = GP2Y0A02YK0F(self.device, name, **params)
             elif params['type'].lower() == 'Digital'.lower():
                 sensor = DigitalSensor(self.device, name, **params)
             elif params['type'].lower() == 'Analog'.lower():

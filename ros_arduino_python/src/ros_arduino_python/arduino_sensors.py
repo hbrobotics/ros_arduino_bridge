@@ -103,6 +103,10 @@ class Sensor(object):
         pass
 
     def publish_message(self):
+        # Flaky sensors can return None occasionally
+        if self.value is None:
+            return
+        
         # Override this method if necessary for particular sensor types
         if self.direction == "input":
             self.value = self.read_value()
@@ -111,7 +115,11 @@ class Sensor(object):
 
         self.msg.value = self.value
         self.msg.header.stamp = rospy.Time.now()
-        self.pub.publish(self.msg)
+        
+        try:
+            self.pub.publish(self.msg)
+        except:
+            rospy.logwarn("Invalid message value %s", self.msg)
     
     def poll(self):
         now = rospy.Time.now()
@@ -305,7 +313,7 @@ class Ping(SonarSensor):
         return distance
         
 class GP2D12(IRSensor):
-    # The GP2D12 has been replaced by the GP2Y0A21YK0F
+    # The GP2D12 has been replaced by the GP2Y0A21YK
     def __init__(self, *args, **kwargs):
         super(GP2D12, self).__init__(*args, **kwargs)
         
@@ -316,14 +324,47 @@ class GP2D12(IRSensor):
     def read_value(self):
         value = self.device.analog_read(self.pin)
         
-        # The GP2D12 cannot provide a meaning result closer than 3 cm.
-        if value <= 3.0:
-            return float('NaN')
-        
         try:
             #distance = pow(4187.8 / value, 1.106)
             distance = (6787.0 / (float(value) - 3.0)) - 4.0
         except:
+            return float('NaN')
+        
+        # The GP2D12 cannot provide a meaning result closer than 3 cm.
+        if distance <= 3.0:
+            return float('NaN')
+            
+        # Convert to meters
+        distance /= 100.0
+        
+        # If we get a spurious reading, set it to the max_range
+        if distance > self.msg.max_range: distance = float('NaN')
+        if distance < self.msg.min_range: distance = float('NaN')
+        
+        return distance
+
+# The GP2D12 has been replaced by the GP2Y0A21YK0F so create an alias here 
+GP2Y0A21YK = GP2D12
+    
+class GP2Y0A02YK0F(IRSensor):
+    # The GP2Y0A02YK0F has a range of 0.15m - 1.5m
+    def __init__(self, *args, **kwargs):
+        super(GP2Y0A02YK0F, self).__init__(*args, **kwargs)
+        
+        self.msg.field_of_view = 0.09
+        self.msg.min_range = 0.15
+        self.msg.max_range = 1.5
+        
+    def read_value(self):
+        value = self.device.analog_read(self.pin)
+        
+        try:
+            distance = 10650.08 * pow(value, -0.935) - 10;
+        except:
+            return float('NaN')
+        
+        # The GP2Y0A02YK0F cannot provide a meaning result closer than 10 cm.
+        if distance <= 10.0:
             return float('NaN')
             
         # Convert to meters
